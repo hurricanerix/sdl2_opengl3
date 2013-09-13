@@ -1,4 +1,4 @@
 .DS_Store
-.swp
-.o
-game
+*.swp
+*.o
+demo
