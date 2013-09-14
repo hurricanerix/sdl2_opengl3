@@ -6,7 +6,13 @@ SOURCES=shader.c
 HEADERS=shader.h
 OBJECTS=$(EXECUTABLES:%.c=%.o) $(SOURCES:%.c=%.o) 
 
+all: bin/demo_glsl120 bin/demo_glsl150
+
 bin/demo_glsl120: $(OBJECTS:%.o=obj/%.o)
+	@echo "INFO: Linking '$@'..."
+	$(CC) $(LDFLAGS) $(@:bin/demo%=obj/main%.o) $(SOURCES:%.c=obj/%.o) -o $@
+
+bin/demo_glsl150: $(OBJECTS:%.o=obj/%.o)
 	@echo "INFO: Linking '$@'..."
 	$(CC) $(LDFLAGS) $(@:bin/demo%=obj/main%.o) $(SOURCES:%.c=obj/%.o) -o $@
 

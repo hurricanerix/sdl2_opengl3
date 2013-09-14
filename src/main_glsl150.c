@@ -7,13 +7,14 @@
 #include <OpenGL/gl3.h>
 #include <SDL2/SDL.h>
 
+#include "shader.h"
+
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
 GLuint programID;
 GLuint vertexbuffer;
 
-GLuint load_shaders();
 
 /*
 char vert_shader_src[] = 
@@ -58,22 +59,6 @@ char vert_shader_src[] =
     "    gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(vertex, 1.0);"
     "}";
 */
-char vert_shader_src[] =
-    "#version 150\n"
-    "uniform mat4 ModelViewMatrix;"
-    "uniform mat4 ProjectionMatrix;"
-    "in vec3 vertex;"
-    "void main(void) {"
-    "    gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(vertex, 1.0);"
-    "}";
-
-char frag_shader_src[] =
-    "#version 150\n"
-    "out vec4 MyFragColor;"
-    "void main(void) {"
-    "    MyFragColor = vec4(1.0, 1.0, 0.0, 1.0);"
-    "}";
-
 int prim = GL_POLYGON;		/* GL primitive to draw */
 
   static GLfloat vertices[] = {
@@ -226,165 +211,6 @@ void init_gl() {
 
     //glEnableClientState(GL_VERTEX_ARRAY);
 */
-}
-
-GLuint load_shaders() {
-    // Create the shaders
-    GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
-    GLint Result = GL_FALSE;
-    int InfoLogLength;
-
-    // Compile Vertex Shader
-    printf("Compiling vert shader : \n");
-    char const * VertexSourcePointer = &vert_shader_src;
-    glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
-    glCompileShader(VertexShaderID);
-
-    // Check Vertex Shader
-    glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if ( InfoLogLength > 0 ){
-        printf("Error compiling vert shader\n.");
-    char *log;
-    int bufsz;
-    int len; 
-
-    glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &bufsz);
-    if (bufsz <= 0) {
-        //fprintf(stderr, "glGetProgramiv: GL_INFO_LOG_LENGTH == %d\n", bufsz);
-        return;
-    }
-    
-    log = malloc(bufsz);
-    if (log == NULL) {
-        fprintf(stderr, "glGetShaderiv: malloc returned NULL pointer\n");
-        // TODO: print error?
-        return;
-    }
-
-    glGetShaderInfoLog(VertexShaderID, bufsz, &len, log);
-    if (len <= 0) {
-       //fprintf(stderr, "glGetProgramiv: len == %d\n", len);
-       // TODO: print message?
-       free (log);
-       return; 
-    }
-
-    if (bufsz != len) {
-        fprintf(stderr, "glGetProgramiv: bufsz != len\n");
-        log[len] = '\0';
-    }
-
-    printf("%s\n", log);
-
-    free(log);
-        //std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
-        //glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-        //printf("%s\n", &VertexShaderErrorMessage[0]);
-    }
-
-    // Compile Fragment Shader
-    printf("Compiling frag shader : \n");
-    char const * FragmentSourcePointer = &frag_shader_src;
-    glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
-    glCompileShader(FragmentShaderID);
-
-    // Check Fragment Shader
-    glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if ( InfoLogLength > 0 ){
-        printf("Error compiling frag shader\n.");
-    char *log;
-    int bufsz;
-    int len; 
-
-    glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &bufsz);
-    if (bufsz <= 0) {
-        //fprintf(stderr, "glGetProgramiv: GL_INFO_LOG_LENGTH == %d\n", bufsz);
-        return;
-    }
-    
-    log = malloc(bufsz);
-    if (log == NULL) {
-        fprintf(stderr, "glGetShaderiv: malloc returned NULL pointer\n");
-        // TODO: print error?
-        return;
-    }
-
-    glGetShaderInfoLog(FragmentShaderID, bufsz, &len, log);
-    if (len <= 0) {
-       //fprintf(stderr, "glGetProgramiv: len == %d\n", len);
-       // TODO: print message?
-       free (log);
-       return; 
-    }
-
-    if (bufsz != len) {
-        fprintf(stderr, "glGetProgramiv: bufsz != len\n");
-        log[len] = '\0';
-    }
-
-    printf("%s\n", log);
-
-    free(log);
-        //std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
-        //glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-        //printf("%s\n", &FragmentShaderErrorMessage[0]);
-    }
-
-    // Link the program
-    printf("Linking program\n");
-    GLuint ProgramID = glCreateProgram();
-    glAttachShader(ProgramID, VertexShaderID);
-    glAttachShader(ProgramID, FragmentShaderID);
-    glLinkProgram(ProgramID);
-
-    // Check the program
-    glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if ( InfoLogLength > 0 ){
-        printf("Error compiling program\n.");
-    char *log;
-    int bufsz;
-    int len; 
-
-    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &bufsz);
-    if (bufsz <= 0) {
-        return;
-    }
-    
-    log = malloc(bufsz);
-    if (log == NULL) {
-        fprintf(stderr, "glGetProgramiv: malloc returned NULL pointer\n");
-        // TODO: print error?
-        return;
-    }
-
-    glGetProgramInfoLog(ProgramID, bufsz, &len, log);
-    if (len < 0) {
-       free (log);
-       return; 
-    }
-
-    if (bufsz != len) {
-        //fprintf(stderr, "glGetProgramiv: bufsz != len\n");
-        log[len] = '\0';
-    }
-
-    printf("%s\n", log);
-
-    free(log);
-        //std::vector<char> ProgramErrorMessage(InfoLogLength+1);
-        //glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-        //printf("%s\n", &ProgramErrorMessage[0]);
-    }
-
-    glDeleteShader(VertexShaderID);
-    glDeleteShader(FragmentShaderID);
-
-    return ProgramID;
 }
 
 int resize_viewport(int width, int height) {
