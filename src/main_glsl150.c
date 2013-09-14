@@ -7,6 +7,7 @@
 #include <OpenGL/gl3.h>
 #include <SDL2/SDL.h>
 
+#include "sdl.h"
 #include "shader.h"
 
 
@@ -145,24 +146,6 @@ static void setProjection( GLfloat pm[16] )
     pm[13] = 0.0;
     pm[14] = -(2.0 * FRUSTUM_NEAR * FRUSTUM_FAR) / (FRUSTUM_FAR - FRUSTUM_NEAR);
     pm[15] = 0.0;
-}
-
-void init_sdl() {
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    SDL_GL_SetAttribute(
-        SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-    SDL_RendererInfo display_renderer_info;
-    SDL_CreateWindowAndRenderer(
-        800, 600, SDL_WINDOW_OPENGL, &display_window, &display_renderer);
-    SDL_GetRendererInfo(display_renderer, &display_renderer_info);
-    if ((display_renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 ||
-        (display_renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
-        // TODO: Handle this. We have no render surface and not accelerated.
-    }
-    SDL_GL_SetSwapInterval(1);
 }
 
 void init_gl() {
@@ -313,11 +296,9 @@ void render() {
 }
 
 int main(int argc, char *argv[]) {
-    init_sdl();
+    init_sdl(&display_window, &display_renderer);
     init_gl();
     resize_viewport(800, 600);
-
-
 
     SDL_Event event;
 
