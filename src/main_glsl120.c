@@ -106,7 +106,7 @@ int resize_viewport(int width, int height) {
     return 1;
 }
 
-void render() {
+void draw_cube() {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -122,6 +122,24 @@ void render() {
 
     glFlush ();
     SDL_RenderPresent(display_renderer);
+}
+
+void render() {
+   static GLfloat xrot, yrot, zrot;
+
+   zrot += 3.0;
+   xrot += 10.0;
+   yrot += 7.0;
+
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   glPushMatrix();
+   glTranslatef(-1.0, 1.2, -0.5);
+   glRotatef(xrot, 1.0, 0.0, 0.0);
+   glRotatef(yrot, 0.0, 1.0, 0.0);
+   glRotatef(zrot, 0.0, 0.0, 1.0);
+   draw_cube();
+   glPopMatrix();
+   glFinish();
 }
 
 int main(int argc, char *argv[]) {
