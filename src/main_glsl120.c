@@ -15,61 +15,57 @@ SDL_Renderer* display_renderer;
 GLuint programID;
 GLuint vertexbuffer;
 
-int prim = GL_POLYGON;		/* GL primitive to draw */
+static GLfloat vertices[] = {
+     1.0, 1.0, 1.0,    // x == 1 face
+     1.0, -1.0, 1.0,
+     1.0, -1.0, -1.0,
+     1.0, 1.0, -1.0,
+    -1.0, 1.0, 1.0,    // x == -1 face
+    -1.0, 1.0, -1.0,
+    -1.0, -1.0, -1.0,
+    -1.0, -1.0, 1.0,
+     1.0, 1.0, 1.0,    // y == 1 face
+     1.0, 1.0, -1.0,
+    -1.0, 1.0, -1.0,
+    -1.0, 1.0, 1.0,
+     1.0, -1.0, 1.0,   // y == -1 face
+    -1.0, -1.0, 1.0,
+    -1.0, -1.0, -1.0,
+     1.0, -1.0, -1.0,
+     1.0, 1.0, 1.0,    // z == 1 face
+    -1.0, 1.0, 1.0,
+    -1.0, -1.0, 1.0,
+     1.0, -1.0, 1.0,
+     1.0, 1.0, -1.0,   // z == -1 face
+     1.0, -1.0, -1.0,
+    -1.0, -1.0, -1.0,
+    -1.0, 1.0, -1.0};
 
-  static GLfloat vertices[] = {
-                                1.0, 1.0, 1.0,    // x == 1 face
-                                1.0, -1.0, 1.0,
-                                1.0, -1.0, -1.0,
-                                1.0, 1.0, -1.0,
-                                -1.0, 1.0, 1.0,   // x == -1 face
-                                -1.0, 1.0, -1.0,
-                                -1.0, -1.0, -1.0, 
-                                -1.0, -1.0, 1.0,
-                                1.0, 1.0, 1.0,    // y == 1 face
-                                1.0, 1.0, -1.0,
-                                -1.0, 1.0, -1.0,   
-                                -1.0, 1.0, 1.0,
-                                1.0, -1.0, 1.0,   // y == -1 face
-                                -1.0, -1.0, 1.0,
-                                -1.0, -1.0, -1.0,   
-                                1.0, -1.0, -1.0,
-                                1.0, 1.0, 1.0,    // z == 1 face
-                                -1.0, 1.0, 1.0,
-                                -1.0, -1.0, 1.0,
-                                1.0, -1.0, 1.0,
-                                1.0, 1.0, -1.0,   // z == -1 face
-                                1.0, -1.0, -1.0,
-                                -1.0, -1.0, -1.0,
-                                -1.0, 1.0, -1.0
-                              };
-  static GLfloat colors[] = {
-                              1.0, 0.0, 0.0,      // x == 1 face color
-                              1.0, 0.0, 0.0,      // x == 1 face color
-                              1.0, 0.0, 0.0,      // x == 1 face color
-                              1.0, 0.0, 0.0,      // x == 1 face color
-                              1.0, 0.0, 0.0,      // x == -1 face color
-                              1.0, 0.0, 0.0,      // x == -1 face color
-                              1.0, 0.0, 0.0,      // x == -1 face color
-                              1.0, 0.0, 0.0,      // x == -1 face color
-                              0.0, 1.0, 0.0,      // y == 1 face color
-                              0.0, 1.0, 0.0,      // y == 1 face color
-                              0.0, 1.0, 0.0,      // y == 1 face color
-                              0.0, 1.0, 0.0,      // y == 1 face color
-                              0.0, 1.0, 0.0,      // y == -1 face color
-                              0.0, 1.0, 0.0,      // y == -1 face color
-                              0.0, 1.0, 0.0,      // y == -1 face color
-                              0.0, 1.0, 0.0,      // y == -1 face color
-                              0.0, 0.0, 1.0,      // z == 1 face color
-                              0.0, 0.0, 1.0,      // z == 1 face color
-                              0.0, 0.0, 1.0,      // z == 1 face color
-                              0.0, 0.0, 1.0,      // z == 1 face color
-                              0.0, 0.0, 1.0,      // z == -1 face color
-                              0.0, 0.0, 1.0,      // z == -1 face color
-                              0.0, 0.0, 1.0,      // z == -1 face color
-                              0.0, 0.0, 1.0       // z == -1 face color
-                            };
-
+static GLfloat colors[] = {
+    1.0, 0.0, 0.0,      // x == 1 face color
+    1.0, 0.0, 0.0,
+    1.0, 0.0, 0.0,
+    1.0, 0.0, 0.0,
+    1.0, 0.0, 0.0,      // x == -1 face color
+    1.0, 0.0, 0.0,
+    1.0, 0.0, 0.0,
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,      // y == 1 face color
+    0.0, 1.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 1.0, 0.0,      // y == -1 face color
+    0.0, 1.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0,      // z == 1 face color
+    0.0, 0.0, 1.0,
+    0.0, 0.0, 1.0,
+    0.0, 0.0, 1.0,
+    0.0, 0.0, 1.0,      // z == -1 face color
+    0.0, 0.0, 1.0,
+    0.0, 0.0, 1.0,
+    0.0, 0.0, 1.0};
 
 void init_sdl() {
     SDL_Init(SDL_INIT_VIDEO);
@@ -97,123 +93,51 @@ void init_gl() {
     printf("GL_SHADING_LANGUAGE_VERSION: %s\n", glGetString(
         GL_SHADING_LANGUAGE_VERSION));
 
-   glEnableClientState(GL_VERTEX_ARRAY);
-   glEnableClientState(GL_COLOR_ARRAY);
-   glVertexPointer(3, GL_FLOAT, 0, vertices);
-   glColorPointer(3, GL_FLOAT, 0, colors);
-   glShadeModel (GL_FLAT);
-   glDepthFunc(GL_LESS);
-   glEnable(GL_DEPTH_TEST);
-    programID = load_shaders();
-/*
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClearDepth(1.0f);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, vertices);
+    glColorPointer(3, GL_FLOAT, 0, colors);
+    glShadeModel (GL_FLAT);
+    glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-
-    // Create and compile our GLSL program from the shaders
-
-
-    //glEnableClientState(GL_VERTEX_ARRAY);
-*/
+    programID = load_shaders();
 }
 
 int resize_viewport(int width, int height) {
-    int w = width;
-    int h = height;
-   glViewport(0, 0, w, h);
+    glViewport(0, 0, width, height);
 
-   glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
 
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-   glFrustum(-1.0, 1.0, -1.0, 1.0, 1.0, 10.0);
-   glTranslatef(0.0, 0.0, -5.0);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glFrustum(-1.0, 1.0, -1.0, 1.0, 1.0, 10.0);
+    glTranslatef(0.0, 0.0, -5.0);
 
-   glMatrixMode(GL_MODELVIEW);
-   glLoadIdentity();
-   glCullFace(GL_BACK);
-   glEnable(GL_CULL_FACE);
-   glShadeModel(GL_FLAT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+    glShadeModel(GL_FLAT);
     glUseProgram(programID);
-/*
-    glViewport(0,0, width, height); 
 
-    glClearColor(0.0,0.0,0.0,0.0);
-
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-
-    glMatrixMode( GL_MODELVIEW ); 
-    glLoadIdentity();
-
-
-    glClear( GL_COLOR_BUFFER_BIT );
-
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glVertexAttribPointer(
-        0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDisableVertexAttribArray(0);
-    */
     return 1;
 }
 
 void render() {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //2glLoadIdentity();
-    /*
-    glBegin(GL_TRIANGLES);
-    glColor3f(0.1, 0.2, 0.3);
-    glVertex3f(0, 0, 0);
-    glVertex3f(1, 0, 0);
-    glVertex3f(0, 1, 0);
-    glEnd();
 
-    glColor3f(1.0, 1.0, 1.0);
-    glBegin(GL_POLYGON);
-     glVertex2f(-0.5, -0.5);
-     glVertex2f(-0.5, 0.5);
-     glVertex2f(0.5, 0.5);
-     glVertex2f(0.5, -0.5);
-    glEnd();
-    glFlush();
-    */
+    int i,j;
 
-  int i,j;
+    for ( i = 0; i < 6; i++ ) {
+        glBegin(GL_POLYGON);
+            for ( j = 0; j < 4; j++ ) {
+                glArrayElement(4*i+j);
+            }
+        glEnd();
+    }
 
-  for ( i = 0; i < 6; i++ ) {
-    glBegin(prim);
-      for ( j = 0; j < 4; j++ ) {
-        glArrayElement(4*i+j);
-      }
-    glEnd();
-  }
     glFlush ();
-/*
-
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
-
-    printf("test\n");
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-    glBegin(GL_TRIANGLES);
-    glArrayElement(2);
-    glArrayElement(3);
-    glArrayElement(5);
-    glEnd();
-    glDisableClientState(GL_VERTEX_ARRAY);
-*/
-
     SDL_RenderPresent(display_renderer);
 }
 
@@ -221,8 +145,6 @@ int main(int argc, char *argv[]) {
     init_sdl();
     init_gl();
     resize_viewport(800, 600);
-
-
 
     SDL_Event event;
 
@@ -238,11 +160,9 @@ int main(int argc, char *argv[]) {
         default:
             break;
         }
-}
+    }
 
     SDL_Delay(5000);
-
-    //glDisableClientState(GL_VERTEX_ARRAY);
     SDL_Quit();
 
     return 0;
