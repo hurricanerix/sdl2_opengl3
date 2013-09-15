@@ -70,11 +70,13 @@ static GLfloat colors[] = {
 
 void init_gl() {
     printf("-- OpenGL Information --\n");
+    printf("---{info-start}---\n");
     printf("GL_VENDOR: %s\n", glGetString(GL_VENDOR));
     printf("GL_RENDERER: %s\n", glGetString(GL_RENDERER));
     printf("GL_VERSION: %s\n", glGetString(GL_VERSION));
     printf("GL_SHADING_LANGUAGE_VERSION: %s\n", glGetString(
         GL_SHADING_LANGUAGE_VERSION));
+    printf("---{info-stop}---\n");
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
@@ -84,7 +86,7 @@ void init_gl() {
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
     if ((program_id = install_shader()) == -1) {
-        fprintf(stderr, "ERROR: could not load GLSL program.\n");
+        fprintf(stderr, "ERROR(MAIN): could not load GLSL program.\n");
     }
 }
 
