@@ -133,7 +133,7 @@ GLuint install_shader() {
     printf("-- SHADER -- Created program: %d\n", program_id);
 
     GLuint vert_shader_id;
-    char vert_filename[] = "resources/shaders/basic_120.vert";
+    char vert_filename[] = "resources/shaders/tmp_120.vert";
     if ((vert_shader_id =
             compile_shader(vert_filename, GL_VERTEX_SHADER)) == -1) {
         fprintf(stderr, "ERROR(SHADER): Could not install shader.\n");
@@ -154,7 +154,7 @@ GLuint install_shader() {
     printf("-- SHADER -- Attached vert shader\n");
 
     GLuint frag_shader_id;
-    char frag_filename[] = "resources/shaders/basic_120.frag";
+    char frag_filename[] = "resources/shaders/tmp_120.frag";
     if ((frag_shader_id =
             compile_shader(frag_filename, GL_FRAGMENT_SHADER)) == -1) {
         fprintf(stderr, "ERROR(SHADER): Could not install shader.\n");
