@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
         switch (event.type)
         {
         case SDL_QUIT:
-            return;
+            return 0;
         default:
             break;
         }

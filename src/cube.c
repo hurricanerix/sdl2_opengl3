@@ -3,7 +3,6 @@
 
 #include "cube.h"
 
-static GLuint vertex_buffer;
 
 static GLfloat vertices[] = {
      1.0, 1.0, 1.0,    // x == 1 face
@@ -57,7 +56,7 @@ static GLfloat colors[] = {
     0.0, 0.0, 1.0,
     0.0, 0.0, 1.0};
 
-GLuint create_cube_buffer() {
+void create_cube_buffer() {
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glVertexPointer(3, GL_FLOAT, 0, vertices);

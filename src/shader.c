@@ -95,7 +95,7 @@ GLuint compile_shader(char *filename, GLuint type) {
     }
     buf[nread] = '\0';
 
-    printf("-- SHADER -- Reading shader complete\n", filename);
+    printf("-- SHADER -- Reading shader complete\n");
     printf("---{src-start}---\n");
     printf("%s", buf);
     printf("---{src-stop}---\n");
@@ -104,7 +104,7 @@ GLuint compile_shader(char *filename, GLuint type) {
 
 
     printf("-- SHADER -- Compiling shader\n");
-    char const *shader_src = &buf;
+    char const *shader_src = (char const *) &buf;
     glShaderSource(shader_id, 1, &shader_src, NULL);
     glCompileShader(shader_id);
 

@@ -12,7 +12,7 @@ void init_sdl(SDL_Window **window, SDL_Renderer **renderer) {
     SDL_RendererInfo display_renderer_info;
     SDL_CreateWindowAndRenderer(
         800, 600, SDL_WINDOW_OPENGL, window, renderer);
-    SDL_GetRendererInfo(renderer, &display_renderer_info);
+    SDL_GetRendererInfo(*renderer, &display_renderer_info);
     if ((display_renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 ||
         (display_renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
         // TODO: Handle this. We have no render surface and not accelerated.
