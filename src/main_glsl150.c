@@ -1,4 +1,4 @@
-#include <stdlib.h>
+/*#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -17,7 +17,6 @@ GLuint programID;
 GLuint vertexbuffer;
 
 
-/*
 char vert_shader_src[] = 
     "#version 120\n"
     "void main(void) {"
@@ -29,7 +28,7 @@ char frag_shader_src[] =
     "void main(void) {"
     "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
     "}";
-*/
+
 
 float p_matrix[] = {
     1, 0, 0, 0,
@@ -45,7 +44,6 @@ float mv_matrix[] = {
     0, 0, 0, 0
 };
 
-/*
 char vert_shader_src[] =
     "#version 150\n"
     "uniform mat4 ModelViewMatrix;"
@@ -59,8 +57,8 @@ char vert_shader_src[] =
     "//    gl_Position = projection_matrix * modelview_matrix * vec4(vertex, 1.0);"
     "    gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(vertex, 1.0);"
     "}";
-*/
-int prim = GL_POLYGON;		/* GL primitive to draw */
+
+int prim = GL_POLYGON;		 GL primitive to draw 
 
   static GLfloat vertices[] = {
                                 1.0, 1.0, 1.0,    // x == 1 face
@@ -183,7 +181,7 @@ void init_gl() {
     //printf("P-offset: %d\n", p_offset);
     //GLint mv_matrixID = glGetUniformLocation(programID, "modelview_matrix");
     //printf("MV-Matrix: %d\n", mv_matrixID);
-/*
+
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth(1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -193,7 +191,7 @@ void init_gl() {
 
 
     //glEnableClientState(GL_VERTEX_ARRAY);
-*/
+
 }
 
 int resize_viewport(int width, int height) {
@@ -214,7 +212,7 @@ int resize_viewport(int width, int height) {
    glEnable(GL_CULL_FACE);
    glShadeModel(GL_FLAT);
     glUseProgram(programID);
-/*
+
     glViewport(0,0, width, height); 
 
     glClearColor(0.0,0.0,0.0,0.0);
@@ -236,7 +234,7 @@ int resize_viewport(int width, int height) {
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDisableVertexAttribArray(0);
-    */
+    
     return 1;
 }
 
@@ -244,7 +242,7 @@ void render() {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //2glLoadIdentity();
-    /*
+    
     glBegin(GL_TRIANGLES);
     glColor3f(0.1, 0.2, 0.3);
     glVertex3f(0, 0, 0);
@@ -260,7 +258,7 @@ void render() {
      glVertex2f(0.5, -0.5);
     glEnd();
     glFlush();
-    */
+    
 
   int i,j;
 
@@ -272,7 +270,7 @@ void render() {
     glEnd();
   }
     glFlush ();
-/*
+
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -290,7 +288,7 @@ void render() {
     glArrayElement(5);
     glEnd();
     glDisableClientState(GL_VERTEX_ARRAY);
-*/
+
 
     SDL_RenderPresent(display_renderer);
 }
@@ -323,3 +321,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+*/

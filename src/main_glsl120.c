@@ -13,7 +13,7 @@
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
-GLuint programID;
+GLuint program_id;
 GLuint vertexbuffer;
 
 static GLfloat vertices[] = {
@@ -83,7 +83,9 @@ void init_gl() {
     glShadeModel (GL_FLAT);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
-    programID = load_shaders();
+    if ((program_id = install_shader()) == -1) {
+        fprintf(stderr, "ERROR: could not load GLSL program.\n");
+    }
 }
 
 int resize_viewport(int width, int height) {
@@ -101,7 +103,7 @@ int resize_viewport(int width, int height) {
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     glShadeModel(GL_FLAT);
-    glUseProgram(programID);
+    glUseProgram(program_id);
 
     return 1;
 }
