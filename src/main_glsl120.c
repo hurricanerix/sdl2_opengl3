@@ -9,64 +9,12 @@
 
 #include "sdl.h"
 #include "shader.h"
+#include "cube.h"
 
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
 GLuint program_id;
-GLuint vertexbuffer;
-
-static GLfloat vertices[] = {
-     1.0, 1.0, 1.0,    // x == 1 face
-     1.0, -1.0, 1.0,
-     1.0, -1.0, -1.0,
-     1.0, 1.0, -1.0,
-    -1.0, 1.0, 1.0,    // x == -1 face
-    -1.0, 1.0, -1.0,
-    -1.0, -1.0, -1.0,
-    -1.0, -1.0, 1.0,
-     1.0, 1.0, 1.0,    // y == 1 face
-     1.0, 1.0, -1.0,
-    -1.0, 1.0, -1.0,
-    -1.0, 1.0, 1.0,
-     1.0, -1.0, 1.0,   // y == -1 face
-    -1.0, -1.0, 1.0,
-    -1.0, -1.0, -1.0,
-     1.0, -1.0, -1.0,
-     1.0, 1.0, 1.0,    // z == 1 face
-    -1.0, 1.0, 1.0,
-    -1.0, -1.0, 1.0,
-     1.0, -1.0, 1.0,
-     1.0, 1.0, -1.0,   // z == -1 face
-     1.0, -1.0, -1.0,
-    -1.0, -1.0, -1.0,
-    -1.0, 1.0, -1.0};
-
-static GLfloat colors[] = {
-    1.0, 0.0, 0.0,      // x == 1 face color
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 0.0,      // x == -1 face color
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 0.0,
-    0.0, 1.0, 0.0,      // y == 1 face color
-    0.0, 1.0, 0.0,
-    0.0, 1.0, 0.0,
-    0.0, 1.0, 0.0,
-    0.0, 1.0, 0.0,      // y == -1 face color
-    0.0, 1.0, 0.0,
-    0.0, 1.0, 0.0,
-    0.0, 1.0, 0.0,
-    0.0, 0.0, 1.0,      // z == 1 face color
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0,      // z == -1 face color
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0};
 
 void init_gl() {
     printf("-- OpenGL Information --\n");
@@ -78,10 +26,8 @@ void init_gl() {
         GL_SHADING_LANGUAGE_VERSION));
     printf("---{info-stop}---\n");
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, vertices);
-    glColorPointer(3, GL_FLOAT, 0, colors);
+    create_cube_buffer();
+
     glShadeModel (GL_FLAT);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
@@ -110,24 +56,6 @@ int resize_viewport(int width, int height) {
     return 1;
 }
 
-void draw_cube() {
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    int i,j;
-
-    for ( i = 0; i < 6; i++ ) {
-        glBegin(GL_POLYGON);
-            for ( j = 0; j < 4; j++ ) {
-                glArrayElement(4*i+j);
-            }
-        glEnd();
-    }
-
-    glFlush ();
-    SDL_RenderPresent(display_renderer);
-}
-
 void render() {
    static GLfloat xrot, yrot, zrot;
 
@@ -141,7 +69,10 @@ void render() {
    glRotatef(xrot, 1.0, 0.0, 0.0);
    glRotatef(yrot, 0.0, 1.0, 0.0);
    glRotatef(zrot, 0.0, 0.0, 1.0);
+   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    draw_cube();
+   SDL_RenderPresent(display_renderer);
    glPopMatrix();
    glFinish();
 }
