@@ -65,7 +65,6 @@ void render() {
 
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glPushMatrix();
-   glTranslatef(-1.0, 1.2, -0.5);
    glRotatef(xrot, 1.0, 0.0, 0.0);
    glRotatef(yrot, 0.0, 1.0, 0.0);
    glRotatef(zrot, 0.0, 0.0, 1.0);
@@ -86,7 +85,8 @@ int main(int argc, char *argv[]) {
 
     for (;;)
     {
-        SDL_WaitEvent(&event);
+        SDL_PollEvent(&event);
+
         render();
 
         switch (event.type)
@@ -98,7 +98,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    SDL_Delay(5000);
     SDL_Quit();
 
     return 0;
