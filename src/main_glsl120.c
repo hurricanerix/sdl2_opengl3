@@ -3,7 +3,6 @@
 #include <string.h>
 #include <math.h>
 #define GL3_PROTOTYPES 1
-#include <OpenGL/gl.h>
 #include <OpenGL/gl3.h>
 #include <SDL2/SDL.h>
 
@@ -15,6 +14,39 @@
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
 GLuint program_id;
+
+GLfloat model_view_matrix[] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f};
+
+GLfloat model_view_proj_matrix[] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, -1.222222f, -1.0f,
+    0.0f, 0.0f, 3.888889f, 5.0f};
+
+/*
+X Rotation:
+
+[1 0 0 0]
+[0 cos(-X Angle) -sin(-X Angle) 0]
+[0 sin(-X Angle) cos(-X Angle) 0]
+[0 0 0 1]
+Y Rotation:
+
+[cos(-Y Angle) 0 sin(-Y Angle) 0]
+[0 1 0 0]
+[-sin(-Y Angle) 0 cos(-Y Angle) 0]
+[0 0 0 1]
+Z Rotation:
+
+[cos(-Z Angle) -sin(-Z Angle) 0 0]
+[sin(-Z Angle) cos(-Z Angle) 0 0]
+[0 0 1 0]
+[0 0 0 1]
+*/
 
 void init_gl() {
     printf("-- OpenGL Information --\n");
@@ -28,7 +60,6 @@ void init_gl() {
 
     create_cube_buffer();
 
-    glShadeModel (GL_FLAT);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
     if ((program_id = install_shader()) == -1) {
@@ -38,20 +69,19 @@ void init_gl() {
 
 int resize_viewport(int width, int height) {
     glViewport(0, 0, width, height);
-
     glClearColor(0.0, 0.0, 0.0, 0.0);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glFrustum(-1.0, 1.0, -1.0, 1.0, 1.0, 10.0);
-    glTranslatef(0.0, 0.0, -5.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
-    glShadeModel(GL_FLAT);
     glUseProgram(program_id);
+
+    int model_view_matrix_location = glGetUniformLocation(
+        program_id, "ModelViewMatrix");
+    int model_view_proj_matrix_location = glGetUniformLocation(
+        program_id, "ProjectionMatrix");
+    glUniformMatrix4fv(
+        model_view_matrix_location, 1, GL_FALSE, model_view_matrix);
+    glUniformMatrix4fv(
+        model_view_proj_matrix_location, 1, GL_FALSE, model_view_proj_matrix);
 
     return 1;
 }
@@ -64,15 +94,10 @@ void render() {
    yrot += 7.0;
 
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   glPushMatrix();
-   glRotatef(xrot, 1.0, 0.0, 0.0);
-   glRotatef(yrot, 0.0, 1.0, 0.0);
-   glRotatef(zrot, 0.0, 0.0, 1.0);
    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    draw_cube();
    SDL_RenderPresent(display_renderer);
-   glPopMatrix();
    glFinish();
 }
 
