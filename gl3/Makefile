@@ -2,20 +2,20 @@ CC=gcc -std=gnu99
 CFLAGS=-g -Wall -Werror -O3 -c -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE 
 LDFLAGS=-L/usr/local/lib -lSDLmain -lSDL2 -Wl,-framework,Cocoa -framework GLUT -framework OpenGL
 EXECUTABLES=main.c
-SOURCES=sdl.c shader.c cube.c
+SOURCES=textfile.c
 HEADERS=$(SOURCES:%.c=%.h)
 OBJECTS=$(EXECUTABLES:%.c=%.o) $(SOURCES:%.c=%.o) 
 
-all: bin/demo
+all: demo
 
-bin/demo: $(OBJECTS:%.o=obj/%.o)
+demo: $(OBJECTS)
 	@echo "INFO: Linking '$@'..."
-	@$(CC) $(LDFLAGS) $(@:bin/demo%=obj/main%.o) $(SOURCES:%.c=obj/%.o) -o $@
+	$(CC) $(LDFLAGS) $(@:demo%=main%.o) $(SOURCES:%.c=%.o) -o $@
 
-$(OBJECTS:%.o=obj/%.o): $(@:obj/%.o=src/%.c) $(HEADERS:%.h=src/%.h)
-	@echo "INFO: Compiling '$(@:obj/%.o=src/%.c)' to '$@'..."
-	@$(CC) $(CFLAGS) $(@:obj/%.o=src/%.c) -o $@
+$(OBJECTS): $(@:%.o=%.c) $(HEADERS)
+	@echo "INFO: Compiling '$(@:%.o=%.c)' to '$@'..."
+	$(CC) $(CFLAGS) $(@:%.o=%.c) -o $@
 
 clean:
 	@echo "INFO: Cleaning workspace..."
-	@rm -f obj/*.o && rm -f bin/demo_glsl*
+	@rm -f *.o && rm -f demo

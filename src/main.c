@@ -10,6 +10,8 @@
 #include "shader.h"
 #include "cube.h"
 
+//http://www.opengl.org/wiki/Common_Mistakes
+
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
@@ -74,6 +76,8 @@ int resize_viewport(int width, int height) {
     glEnable(GL_CULL_FACE);
     glUseProgram(program_id);
 
+    glBindAttribLocation(program_id, 0, "vertex");
+
     int model_view_matrix_location = glGetUniformLocation(
         program_id, "ModelViewMatrix");
     int model_view_proj_matrix_location = glGetUniformLocation(
@@ -87,18 +91,11 @@ int resize_viewport(int width, int height) {
 }
 
 void render() {
-   static GLfloat xrot, yrot, zrot;
-
-   zrot += 3.0;
-   xrot += 10.0;
-   yrot += 7.0;
-
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    draw_cube();
-   SDL_RenderPresent(display_renderer);
    glFinish();
+   SDL_RenderPresent(display_renderer);
 }
 
 int main(int argc, char *argv[]) {

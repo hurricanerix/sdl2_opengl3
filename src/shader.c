@@ -1,12 +1,22 @@
 #define GL3_PROTOTYPES 1
 #include <stdio.h>
 #include <stdlib.h>
-//#include <OpenGL/gl.h>
 #include <OpenGL/gl3.h>
 
 #include "shader.h"
 
 const int MAX_SHADER_FILE_SIZE = 102400;
+
+GLuint vert_shader_id;
+GLuint frag_shader_id;
+
+GLuint get_vert_shader_id() {
+    return vert_shader_id;
+}
+
+GLuint get_frag_shader_id() {
+    return frag_shader_id;
+}
 
 void print_program_log(GLint program_id) {
     int log_length;
@@ -132,7 +142,7 @@ GLuint install_shader() {
     }
     printf("-- SHADER -- Created program: %d\n", program_id);
 
-    GLuint vert_shader_id;
+    //GLuint vert_shader_id;
     char vert_filename[] = "resources/shaders/basic.vert";
     if ((vert_shader_id =
             compile_shader(vert_filename, GL_VERTEX_SHADER)) == -1) {
@@ -153,7 +163,7 @@ GLuint install_shader() {
     }*/
     printf("-- SHADER -- Attached vert shader\n");
 
-    GLuint frag_shader_id;
+    //GLuint frag_shader_id;
     char frag_filename[] = "resources/shaders/basic.frag";
     if ((frag_shader_id =
             compile_shader(frag_filename, GL_FRAGMENT_SHADER)) == -1) {

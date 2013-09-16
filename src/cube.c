@@ -1,9 +1,8 @@
-#include <OpenGL/gl.h>
 #include <OpenGL/gl3.h>
-
 #include "cube.h"
 
 
+/*
 static GLfloat vertices[] = {
      1.0, 1.0, 1.0,    // x == 1 face
      1.0, -1.0, 1.0,
@@ -55,24 +54,27 @@ static GLfloat colors[] = {
     0.0, 0.0, 1.0,
     0.0, 0.0, 1.0,
     0.0, 0.0, 1.0};
+*/
+
+GLuint triangleVBO;
+const float NUM_OF_VERTICES_IN_DATA=3;
+float data[3][3] = {
+    {  0.0, 1.0, 0.0   },
+    { -1.0, -1.0, 0.0  },
+    {  1.0, -1.0, 0.0  }
+    };
 
 void create_cube_buffer() {
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, vertices);
-    glColorPointer(3, GL_FLOAT, 0, colors);
+    const unsigned int shaderAttribute = 0;
+
+    glGenBuffers(1, &triangleVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, triangleVBO);
+    glBufferData(GL_ARRAY_BUFFER, NUM_OF_VERTICES_IN_DATA * 3 * sizeof(float), data, GL_STATIC_DRAW);
+    glVertexAttribPointer(shaderAttribute, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(shaderAttribute);
+    glBindBuffer(GL_ARRAY_BUFFER, triangleVBO);
 }
 
 void draw_cube() {
-    int i,j;
-
-    for ( i = 0; i < 6; i++ ) {
-        glBegin(GL_POLYGON);
-            for ( j = 0; j < 4; j++ ) {
-                glArrayElement(4*i+j);
-            }
-        glEnd();
-    }
-
-    glFlush ();
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 }
