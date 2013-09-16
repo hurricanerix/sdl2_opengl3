@@ -133,7 +133,7 @@ GLuint install_shader() {
     printf("-- SHADER -- Created program: %d\n", program_id);
 
     GLuint vert_shader_id;
-    char vert_filename[] = "resources/shaders/tmp_120.vert";
+    char vert_filename[] = "resources/shaders/basic.vert";
     if ((vert_shader_id =
             compile_shader(vert_filename, GL_VERTEX_SHADER)) == -1) {
         fprintf(stderr, "ERROR(SHADER): Could not install shader.\n");
@@ -143,18 +143,18 @@ GLuint install_shader() {
     printf("-- SHADER -- Created vert shader: %d\n", vert_shader_id);
 
     glAttachShader(program_id, vert_shader_id);
-    result = glGetError();
+    /*result = glGetError();
     if (result == GL_INVALID_VALUE || result == GL_INVALID_OPERATION) { 
         fprintf(stderr, "ERROR(SHADER): Could not attach vertex shader to program.\n");
         fprintf(stderr, "ERROR(SHADER): Could not install shader.\n");
         print_program_log(program_id);
         glDeleteShader(vert_shader_id);
         return -1;
-    }
+    }*/
     printf("-- SHADER -- Attached vert shader\n");
 
     GLuint frag_shader_id;
-    char frag_filename[] = "resources/shaders/tmp_120.frag";
+    char frag_filename[] = "resources/shaders/basic.frag";
     if ((frag_shader_id =
             compile_shader(frag_filename, GL_FRAGMENT_SHADER)) == -1) {
         fprintf(stderr, "ERROR(SHADER): Could not install shader.\n");
@@ -165,7 +165,7 @@ GLuint install_shader() {
     printf("-- SHADER -- Created frag shader: %d\n", frag_shader_id);
 
     glAttachShader(program_id, frag_shader_id);
-    result = glGetError();
+    /*result = glGetError();
     if (result == GL_INVALID_VALUE || result == GL_INVALID_OPERATION) { 
         fprintf(stderr, "ERROR(SHADER): Could not attach fragment shader to program.\n");
         fprintf(stderr, "ERROR(SHADER): Could not install shader.\n");
@@ -173,7 +173,7 @@ GLuint install_shader() {
         glDeleteShader(vert_shader_id);
         glDeleteShader(frag_shader_id);
         return -1;
-    }
+    }*/
     printf("-- SHADER -- Attached frag shader\n");
 
     GLint link_status;
