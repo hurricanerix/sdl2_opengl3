@@ -15,40 +15,78 @@
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
 
-// Data for drawing Axis
-float verticesAxis[] = {-20.0f, 0.0f, 0.0f, 1.0f,
-            20.0f, 0.0f, 0.0f, 1.0f,
+#define A -1.0f, -1.0f, -1.0f, 1.0f
+#define B  1.0f, -1.0f, -1.0f, 1.0f
+#define C -1.0f,  1.0f, -1.0f, 1.0f
+#define D  1.0f,  1.0f, -1.0f, 1.0f
+#define E  1.0f, -1.0f,  1.0f, 1.0f
+#define F  1.0f,  1.0f,  1.0f, 1.0f
+#define G -1.0f,  1.0f,  1.0f, 1.0f
+#define H -1.0f, -1.0f,  1.0f, 1.0f
 
-            0.0f, -20.0f, 0.0f, 1.0f,
-            0.0f,  20.0f, 0.0f, 1.0f,
+#define TRIANGLE_COUNT (36)
 
-            0.0f, 0.0f, -20.0f, 1.0f,
-            0.0f, 0.0f,  20.0f, 1.0f};
+float vertices1[] = {
+    A, B, C,
+    D, C, B,
+    B, E, D,
+    F, D, E,
+    E, H, F,
+    G, F, H,
+    H, A, G,
+    C, G, A,
+    C, D, G,
+    F, G, D,
+    B, A, E,
+    H, E, A
+};
 
-float colorAxis[] = {   0.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f};
+float colors1[] = {
+    0.0f, 0.0f, 1.0f, 1.0f,
+    0.0f, 0.0f, 1.0f, 1.0f,
+    0.0f, 0.0f, 1.0f, 1.0f,
+    0.0f, 0.0f, 1.0f, 1.0f,
+    0.0f, 0.0f, 1.0f, 1.0f,
+    0.0f, 0.0f, 1.0f, 1.0f,
 
-// Data for triangle 1
-float vertices1[] = {   -3.0f, 0.0f, -5.0f, 1.0f,
-            -1.0f, 0.0f, -5.0f, 1.0f,
-            -2.0f, 2.0f, -5.0f, 1.0f};
+    0.0f, 1.0f, 1.0f, 1.0f,
+    0.0f, 1.0f, 1.0f, 1.0f,
+    0.0f, 1.0f, 1.0f, 1.0f,
+    0.0f, 1.0f, 1.0f, 1.0f,
+    0.0f, 1.0f, 1.0f, 1.0f,
+    0.0f, 1.0f, 1.0f, 1.0f,
 
-float colors1[] = { 0.0f, 0.0f, 1.0f, 1.0f,
-            0.0f, 0.0f, 1.0f, 1.0f,
-            0.0f,0.0f, 1.0f, 1.0f};
+    1.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, 0.0f, 1.0f, 1.0f,
 
-// Data for triangle 2
-float vertices2[] = {   1.0f, 0.0f, -5.0f, 1.0f,
-            3.0f, 0.0f, -5.0f, 1.0f,
-            2.0f, 2.0f, -5.0f, 1.0f};
+    0.0f, 1.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
 
-float colors2[] = { 1.0f, 0.0f, 0.0f, 1.0f,
-            1.0f, 0.0f, 0.0f, 1.0f,
-            1.0f,0.0f, 0.0f, 1.0f};
+    1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, 1.0f, 0.0f, 1.0f,
+
+    1.0f, 0.0f, 0.0f, 1.0f,
+    1.0f, 0.0f, 0.0f, 1.0f,
+    1.0f, 0.0f, 0.0f, 1.0f,
+    1.0f, 0.0f, 0.0f, 1.0f,
+    1.0f, 0.0f, 0.0f, 1.0f,
+    1.0f, 0.0f, 0.0f, 1.0f
+};
+
+
+
 
 // Shader Names
 char *vertexFileName = "color.vert";
@@ -228,10 +266,9 @@ void setupBuffers() {
 
     GLuint buffers[2];
 
-    glGenVertexArrays(3, vao);
-    //
-    // VAO for first triangle
-    //
+    glGenVertexArrays(1, vao);
+
+    // VAO for cube
     glBindVertexArray(vao[0]);
     // Generate two slots for the vertex and color buffers
     glGenBuffers(2, buffers);
@@ -246,44 +283,6 @@ void setupBuffers() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(colors1), colors1, GL_STATIC_DRAW);
     glEnableVertexAttribArray(colorLoc);
     glVertexAttribPointer(colorLoc, 4, GL_FLOAT, 0, 0, 0);
-
-    //
-    // VAO for second triangle
-    //
-    glBindVertexArray(vao[1]);
-    // Generate two slots for the vertex and color buffers
-    glGenBuffers(2, buffers);
-
-    // bind buffer for vertices and copy data into buffer
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(vertexLoc);
-    glVertexAttribPointer(vertexLoc, 4, GL_FLOAT, 0, 0, 0);
-
-    // bind buffer for colors and copy data into buffer
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors2), colors2, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(colorLoc);
-    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, 0, 0, 0);
-
-    //
-    // This VAO is for the Axis
-    //
-    glBindVertexArray(vao[2]);
-    // Generate two slots for the vertex and color buffers
-    glGenBuffers(2, buffers);
-    // bind buffer for vertices and copy data into buffer
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesAxis), verticesAxis, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(vertexLoc);
-    glVertexAttribPointer(vertexLoc, 4, GL_FLOAT, 0, 0, 0);
-
-    // bind buffer for colors and copy data into buffer
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colorAxis), colorAxis, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(colorLoc);
-    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, 0, 0, 0);
-
 }
 
 void setUniforms() {
@@ -302,13 +301,7 @@ void renderScene(void) {
     setUniforms();
 
     glBindVertexArray(vao[0]);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glBindVertexArray(vao[1]);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glBindVertexArray(vao[2]);
-    glDrawArrays(GL_LINES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, TRIANGLE_COUNT);
 
     //glutSwapBuffers();
     SDL_GL_SwapWindow(display_window);
@@ -317,7 +310,7 @@ void renderScene(void) {
 void processNormalKeys(unsigned char key, int x, int y) {
 
     if (key == 27) {
-        glDeleteVertexArrays(3,vao);
+        glDeleteVertexArrays(1,vao);
         glDeleteProgram(p);
         glDeleteShader(v);
         glDeleteShader(f);
@@ -433,7 +426,7 @@ int main(int argc, char **argv) {
 
     SDL_RendererInfo display_renderer_info;
     SDL_CreateWindowAndRenderer(
-        800, 600, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL, &display_window, &display_renderer);
+        800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL, &display_window, &display_renderer);
     SDL_GetRendererInfo(display_renderer, &display_renderer_info);
     if ((display_renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 ||
         (display_renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
@@ -453,10 +446,10 @@ int main(int argc, char **argv) {
     changeSize(800, 600);
 
     glEnable(GL_DEPTH_TEST);
-    glClearColor(1.0,1.0,1.0,1.0);
+    glClearColor(0.2,0.2,0.2,1.0);
 
-    p = setupShaders(); 
-    setupBuffers(); 
+    p = setupShaders();
+    setupBuffers();
 
     SDL_Event event;
 
