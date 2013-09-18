@@ -1,9 +1,14 @@
 #version 150
-in vec3 vertex;
-
-uniform mat4 ModelViewMatrix;
-uniform mat4 ProjectionMatrix;
-
-void main(void) {
-    gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(vertex, 1.0);
+ 
+uniform mat4 viewMatrix, projMatrix;
+ 
+in vec4 position;
+in vec3 color;
+ 
+out vec3 Color;
+ 
+void main()
+{
+    Color = color;
+    gl_Position = projMatrix * viewMatrix * position ;
 }
