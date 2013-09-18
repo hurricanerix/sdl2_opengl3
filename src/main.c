@@ -9,27 +9,6 @@
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
 
-/*
-X Rotation:
-
-[1 0 0 0]
-[0 cos(-X Angle) -sin(-X Angle) 0]
-[0 sin(-X Angle) cos(-X Angle) 0]
-[0 0 0 1]
-Y Rotation:
-
-[cos(-Y Angle) 0 sin(-Y Angle) 0]
-[0 1 0 0]
-[-sin(-Y Angle) 0 cos(-Y Angle) 0]
-[0 0 0 1]
-Z Rotation:
-
-[cos(-Z Angle) -sin(-Z Angle) 0 0]
-[sin(-Z Angle) cos(-Z Angle) 0 0]
-[0 0 1 0]
-[0 0 0 1]
-*/
-
 #define A -1.0f, -1.0f, -1.0f, 1.0f
 #define B  1.0f, -1.0f, -1.0f, 1.0f
 #define C -1.0f,  1.0f, -1.0f, 1.0f
@@ -112,6 +91,7 @@ GLuint vertexLoc, colorLoc;
 
 // Uniform variable Locations
 GLuint projMatrixLoc, viewMatrixLoc;
+GLuint rotXLoc, rotYLoc, rotZLoc;
 
 // Vertex Array Objects Identifiers
 GLuint vao[3];
@@ -119,6 +99,21 @@ GLuint vao[3];
 // storage for Matrices
 float projMatrix[16];
 float viewMatrix[16];
+
+float rotXMatrix[9] = {
+    1.0f, 0.0f, 0.0f,
+    0.0f, 9.9f, 9.9f,
+    0.0f, 9.9f, 9.9f};
+
+float rotYMatrix[9] = {
+    9.9f, 0.0f, 9.9f,
+    0.0f, 1.0f, 0.0f,
+    9.9f, 0.0f, 9.9f};
+
+float rotZMatrix[9] = {
+    9.9f, 9.9f, 0.0f,
+    9.9f, 9.9f, 0.0f,
+    0.0f, 0.0f, 1.0f};
 
 // ----------------------------------------------------
 // VECTOR STUFF
@@ -275,6 +270,8 @@ void changeSize(int w, int h) {
 }
 
 void setupBuffers() {
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CW);
 
     GLuint buffers[2];
 
@@ -302,10 +299,41 @@ void setUniforms() {
     // must be called after glUseProgram
     glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, projMatrix);
     glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, viewMatrix);
+    glUniformMatrix3fv(rotXLoc,  1, GL_FALSE, rotXMatrix);
+    glUniformMatrix3fv(rotYLoc,  1, GL_FALSE, rotYMatrix);
+    glUniformMatrix3fv(rotZLoc,  1, GL_FALSE, rotZMatrix);
+}
+
+void set_rot(float angle_x, float angle_y, float angle_z) {
+
+    // x
+    rotXMatrix[4] = cos(angle_x);
+    rotXMatrix[5] = -sin(angle_x);
+    rotXMatrix[7] = sin(angle_x);
+    rotXMatrix[8] = cos(angle_x);
+
+    // y
+    rotYMatrix[0] = cos(angle_y);
+    rotYMatrix[2] = sin(angle_y);
+    rotYMatrix[6] = -sin(angle_y);
+    rotYMatrix[8] = cos(angle_y);
+
+    // z
+    rotZMatrix[0] = cos(angle_z);
+    rotZMatrix[1] = -sin(angle_z);
+    rotZMatrix[3] = sin(angle_z);
+    rotZMatrix[4] = cos(angle_z);
 }
 
 void renderScene(void) {
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    static float x_rot, y_rot, z_rot;
+    x_rot += 0.02;
+    y_rot += 0.05;
+    z_rot += 0.01;
+
+    set_rot(x_rot, y_rot, z_rot);
 
     setCamera(10,2,10,0,2,-5);
 
@@ -452,6 +480,9 @@ GLuint setupShaders() {
 
     projMatrixLoc = glGetUniformLocation(p, "projMatrix");
     viewMatrixLoc = glGetUniformLocation(p, "viewMatrix");
+    rotXLoc = glGetUniformLocation(p, "rot_x");
+    rotYLoc = glGetUniformLocation(p, "rot_y");
+    rotZLoc = glGetUniformLocation(p, "rot_z");
 
     return(p);
 }
