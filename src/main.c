@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <memory.h>
-#include <math.h>
+
 #define GL3_PROTOTYPES 1
 #include <OpenGL/gl3.h>
 #include <SDL2/SDL.h>
+
+#include "3dmath.h"
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
@@ -19,6 +20,10 @@ SDL_Renderer* display_renderer;
 #define H -1.0f, -1.0f,  1.0f, 1.0f
 
 #define TRIANGLE_COUNT (36)
+
+float rotXMatrix[9];
+float rotYMatrix[9];
+float rotZMatrix[9];
 
 float vertices1[] = {
     A, B, C,
@@ -100,160 +105,6 @@ GLuint vao[3];
 float projMatrix[16];
 float viewMatrix[16];
 
-float rotXMatrix[9] = {
-    1.0f, 0.0f, 0.0f,
-    0.0f, 9.9f, 9.9f,
-    0.0f, 9.9f, 9.9f};
-
-float rotYMatrix[9] = {
-    9.9f, 0.0f, 9.9f,
-    0.0f, 1.0f, 0.0f,
-    9.9f, 0.0f, 9.9f};
-
-float rotZMatrix[9] = {
-    9.9f, 9.9f, 0.0f,
-    9.9f, 9.9f, 0.0f,
-    0.0f, 0.0f, 1.0f};
-
-// ----------------------------------------------------
-// VECTOR STUFF
-//
-
-// res = a cross b;
-void crossProduct( float *a, float *b, float *res) {
-
-    res[0] = a[1] * b[2]  -  b[1] * a[2];
-    res[1] = a[2] * b[0]  -  b[2] * a[0];
-    res[2] = a[0] * b[1]  -  b[0] * a[1];
-}
-
-// Normalize a vec3
-void normalize(float *a) {
-
-    float mag = sqrt(a[0] * a[0]  +  a[1] * a[1]  +  a[2] * a[2]);
-
-    a[0] /= mag;
-    a[1] /= mag;
-    a[2] /= mag;
-}
-
-// ----------------------------------------------------
-// MATRIX STUFF
-//
-
-// sets the square matrix mat to the identity matrix,
-// size refers to the number of rows (or columns)
-void setIdentityMatrix( float *mat, int size) {
-
-    // fill matrix with 0s
-    for (int i = 0; i < size * size; ++i)
-            mat[i] = 0.0f;
-
-    // fill diagonal with 1s
-    for (int i = 0; i < size; ++i)
-        mat[i + i * size] = 1.0f;
-}
-
-//
-// a = a * b;
-//
-void multMatrix(float *a, float *b) {
-
-    float res[16];
-
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            res[j*4 + i] = 0.0f;
-            for (int k = 0; k < 4; ++k) {
-                res[j*4 + i] += a[k*4 + i] * b[j*4 + k];
-            }
-        }
-    }
-    memcpy(a, res, 16 * sizeof(float));
-
-}
-
-// Defines a transformation matrix mat with a translation
-void setTranslationMatrix(float *mat, float x, float y, float z) {
-
-    setIdentityMatrix(mat,4);
-    mat[12] = x;
-    mat[13] = y;
-    mat[14] = z;
-}
-
-// ----------------------------------------------------
-// Projection Matrix
-//
-
-void buildProjectionMatrix(float fov, float ratio, float nearP, float farP) {
-
-    float f = 1.0f / tan (fov * (M_PI / 360.0));
-
-    setIdentityMatrix(projMatrix,4);
-
-    projMatrix[0] = f / ratio;
-    projMatrix[1 * 4 + 1] = f;
-    projMatrix[2 * 4 + 2] = (farP + nearP) / (nearP - farP);
-    projMatrix[3 * 4 + 2] = (2.0f * farP * nearP) / (nearP - farP);
-    projMatrix[2 * 4 + 3] = -1.0f;
-    projMatrix[3 * 4 + 3] = 0.0f;
-}
-
-// ----------------------------------------------------
-// View Matrix
-//
-// note: it assumes the camera is not tilted,
-// i.e. a vertical up vector (remmeber gluLookAt?)
-//
-
-void setCamera(float posX, float posY, float posZ,
-               float lookAtX, float lookAtY, float lookAtZ) {
-
-    float dir[3], right[3], up[3];
-
-    up[0] = 0.0f;   up[1] = 1.0f;   up[2] = 0.0f;
-
-    dir[0] =  (lookAtX - posX);
-    dir[1] =  (lookAtY - posY);
-    dir[2] =  (lookAtZ - posZ);
-    normalize(dir);
-
-    crossProduct(dir,up,right);
-    normalize(right);
-
-    crossProduct(right,dir,up);
-    normalize(up);
-
-    float aux[16];
-
-    viewMatrix[0]  = right[0];
-    viewMatrix[4]  = right[1];
-    viewMatrix[8]  = right[2];
-    viewMatrix[12] = 0.0f;
-
-    viewMatrix[1]  = up[0];
-    viewMatrix[5]  = up[1];
-    viewMatrix[9]  = up[2];
-    viewMatrix[13] = 0.0f;
-
-    viewMatrix[2]  = -dir[0];
-    viewMatrix[6]  = -dir[1];
-    viewMatrix[10] = -dir[2];
-    viewMatrix[14] =  0.0f;
-
-    viewMatrix[3]  = 0.0f;
-    viewMatrix[7]  = 0.0f;
-    viewMatrix[11] = 0.0f;
-    viewMatrix[15] = 1.0f;
-
-    setTranslationMatrix(aux, -posX, -posY, -posZ);
-
-    multMatrix(viewMatrix, aux);
-}
-
-// ----------------------------------------------------
-
 void changeSize(int w, int h) {
 
     float ratio;
@@ -266,7 +117,7 @@ void changeSize(int w, int h) {
     glViewport(0, 0, w, h);
 
     ratio = (1.0f * w) / h;
-    buildProjectionMatrix(53.13f, ratio, 1.0f, 30.0f);
+    buildProjectionMatrix(projMatrix, 53.13f, ratio, 1.0f, 30.0f);
 }
 
 void setupBuffers() {
@@ -295,34 +146,12 @@ void setupBuffers() {
 }
 
 void setUniforms() {
-
     // must be called after glUseProgram
     glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, projMatrix);
     glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, viewMatrix);
     glUniformMatrix3fv(rotXLoc,  1, GL_FALSE, rotXMatrix);
     glUniformMatrix3fv(rotYLoc,  1, GL_FALSE, rotYMatrix);
     glUniformMatrix3fv(rotZLoc,  1, GL_FALSE, rotZMatrix);
-}
-
-void set_rot(float angle_x, float angle_y, float angle_z) {
-
-    // x
-    rotXMatrix[4] = cos(angle_x);
-    rotXMatrix[5] = -sin(angle_x);
-    rotXMatrix[7] = sin(angle_x);
-    rotXMatrix[8] = cos(angle_x);
-
-    // y
-    rotYMatrix[0] = cos(angle_y);
-    rotYMatrix[2] = sin(angle_y);
-    rotYMatrix[6] = -sin(angle_y);
-    rotYMatrix[8] = cos(angle_y);
-
-    // z
-    rotZMatrix[0] = cos(angle_z);
-    rotZMatrix[1] = -sin(angle_z);
-    rotZMatrix[3] = sin(angle_z);
-    rotZMatrix[4] = cos(angle_z);
 }
 
 void renderScene(void) {
@@ -333,9 +162,11 @@ void renderScene(void) {
     y_rot += 0.05;
     z_rot += 0.01;
 
-    set_rot(x_rot, y_rot, z_rot);
+    get_x_rot_matrix(rotXMatrix, x_rot);
+    get_y_rot_matrix(rotYMatrix, y_rot);
+    get_z_rot_matrix(rotZMatrix, z_rot);
 
-    setCamera(10,2,10,0,2,-5);
+    setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
 
     glUseProgram(p);
     setUniforms();

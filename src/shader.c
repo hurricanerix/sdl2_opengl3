@@ -1,3 +1,5 @@
+// This is old code, and is not currently being used.
+
 #define GL3_PROTOTYPES 1
 #include <stdio.h>
 #include <stdlib.h>
