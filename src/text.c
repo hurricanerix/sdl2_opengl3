@@ -1,9 +1,12 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "text.h"
 
 char *textFileRead(char *fn) {
+    assert(fn != NULL);
+
     FILE *fp;
     char *content = NULL;
 

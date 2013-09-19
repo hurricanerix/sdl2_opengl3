@@ -12,17 +12,15 @@
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
-
 float rotXMatrix[9];
 float rotYMatrix[9];
 float rotZMatrix[9];
 char *vertexFileName = "resources/shaders/basic.vert";
 char *fragmentFileName = "resources/shaders/basic.frag";
 GLuint p,v,f;
-
-
 float projMatrix[16];
 float viewMatrix[16];
+
 
 void renderScene(void);
 void processNormalKeys(unsigned char key, int x, int y);

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <OpenGL/gl3.h>
@@ -11,8 +12,8 @@ GLuint projMatrixLoc, viewMatrixLoc;
 GLuint rotXLoc, rotYLoc, rotZLoc;
 
 
-int printOglError(char *file, int line)
-{
+int printOglError(char *file, int line) {
+    assert(file != NULL);
     //
     // Returns 1 if an OpenGL error occurred, 0 otherwise.
     //
@@ -30,8 +31,7 @@ int printOglError(char *file, int line)
     return retCode;
 }
 
-void printShaderInfoLog(GLuint obj)
-{
+void printShaderInfoLog(GLuint obj) {
     int infologLength = 0;
     int charsWritten  = 0;
     char *infoLog;
@@ -47,8 +47,7 @@ void printShaderInfoLog(GLuint obj)
     }
 }
 
-void printProgramInfoLog(GLuint obj)
-{
+void printProgramInfoLog(GLuint obj) {
     int infologLength = 0;
     int charsWritten  = 0;
     char *infoLog;
@@ -65,6 +64,8 @@ void printProgramInfoLog(GLuint obj)
 }
 
 GLuint setupShaders(char *vertexFileName, char *fragmentFileName) {
+    assert(vertexFileName != NULL);
+    assert(fragmentFileName != NULL);
 
     char *vs = NULL,*fs = NULL;
 

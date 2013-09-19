@@ -20,7 +20,7 @@ float rotZMatrix[9] = {
     9.9f, 9.9f, 0.0f,
     0.0f, 0.0f, 1.0f};
 
-void get_x_rot_matrix(float *m, float angle){
+void get_x_rot_matrix(float *m, float angle) {
     assert(m != NULL);
 
     // x
@@ -30,7 +30,7 @@ void get_x_rot_matrix(float *m, float angle){
     rotXMatrix[8] = cos(angle);
 }
 
-void get_y_rot_matrix(float *m, float angle){
+void get_y_rot_matrix(float *m, float angle) {
     assert(m != NULL);
     // y
     rotYMatrix[0] = cos(angle);
@@ -39,7 +39,7 @@ void get_y_rot_matrix(float *m, float angle){
     rotYMatrix[8] = cos(angle);
 }
 
-void get_z_rot_matrix(float *m, float angle){
+void get_z_rot_matrix(float *m, float angle) {
     assert(m != NULL);
     // z
     rotZMatrix[0] = cos(angle);
