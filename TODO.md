@@ -9,3 +9,4 @@ Completed
 * Move 3dmath code to its own module.
 * Move file reading code to its own module.
 * Move shader code to its own module.
+* Move object code to its own module.

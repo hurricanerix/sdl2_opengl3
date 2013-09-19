@@ -8,6 +8,7 @@
 #include "3dmath.h"
 #include "text.h"
 #include "shader.h"
+#include "object.h"
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
@@ -19,135 +20,14 @@ char *vertexFileName = "resources/shaders/basic.vert";
 char *fragmentFileName = "resources/shaders/basic.frag";
 GLuint p,v,f;
 
-GLuint vao[3];
+
 float projMatrix[16];
 float viewMatrix[16];
 
-// --- CUBE ---
-#define A -1.0f, -1.0f, -1.0f, 1.0f
-#define B  1.0f, -1.0f, -1.0f, 1.0f
-#define C -1.0f,  1.0f, -1.0f, 1.0f
-#define D  1.0f,  1.0f, -1.0f, 1.0f
-#define E  1.0f, -1.0f,  1.0f, 1.0f
-#define F  1.0f,  1.0f,  1.0f, 1.0f
-#define G -1.0f,  1.0f,  1.0f, 1.0f
-#define H -1.0f, -1.0f,  1.0f, 1.0f
-
-float vertices[] = {
-    A, B, C,
-    D, C, B,
-    B, E, D,
-    F, D, E,
-    E, H, F,
-    G, F, H,
-    H, A, G,
-    C, G, A,
-    C, D, G,
-    F, G, D,
-    B, A, E,
-    H, E, A
-};
-
-#define TRIANGLE_COUNT (36)
-
-float colors[] = {
-    0.0f, 0.0f, 1.0f, 1.0f,
-    0.0f, 0.0f, 1.0f, 1.0f,
-    0.0f, 0.0f, 1.0f, 1.0f,
-    0.0f, 0.0f, 1.0f, 1.0f,
-    0.0f, 0.0f, 1.0f, 1.0f,
-    0.0f, 0.0f, 1.0f, 1.0f,
-
-    0.0f, 1.0f, 1.0f, 1.0f,
-    0.0f, 1.0f, 1.0f, 1.0f,
-    0.0f, 1.0f, 1.0f, 1.0f,
-    0.0f, 1.0f, 1.0f, 1.0f,
-    0.0f, 1.0f, 1.0f, 1.0f,
-    0.0f, 1.0f, 1.0f, 1.0f,
-
-    1.0f, 0.0f, 1.0f, 1.0f,
-    1.0f, 0.0f, 1.0f, 1.0f,
-    1.0f, 0.0f, 1.0f, 1.0f,
-    1.0f, 0.0f, 1.0f, 1.0f,
-    1.0f, 0.0f, 1.0f, 1.0f,
-    1.0f, 0.0f, 1.0f, 1.0f,
-
-    0.0f, 1.0f, 0.0f, 1.0f,
-    0.0f, 1.0f, 0.0f, 1.0f,
-    0.0f, 1.0f, 0.0f, 1.0f,
-    0.0f, 1.0f, 0.0f, 1.0f,
-    0.0f, 1.0f, 0.0f, 1.0f,
-    0.0f, 1.0f, 0.0f, 1.0f,
-
-    1.0f, 1.0f, 0.0f, 1.0f,
-    1.0f, 1.0f, 0.0f, 1.0f,
-    1.0f, 1.0f, 0.0f, 1.0f,
-    1.0f, 1.0f, 0.0f, 1.0f,
-    1.0f, 1.0f, 0.0f, 1.0f,
-    1.0f, 1.0f, 0.0f, 1.0f,
-
-    1.0f, 0.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 0.0f, 1.0f
-};
-
-void setupBuffers() {
-    glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CW);
-
-    GLuint buffers[2];
-
-    glGenVertexArrays(1, vao);
-
-    // VAO for cube
-    glBindVertexArray(vao[0]);
-    // Generate two slots for the vertex and color buffers
-    glGenBuffers(2, buffers);
-    // bind buffer for vertices and copy data into buffer
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(vertexLoc);
-    glVertexAttribPointer(vertexLoc, 4, GL_FLOAT, 0, 0, 0);
-
-    // bind buffer for colors and copy data into buffer
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(colorLoc);
-    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, 0, 0, 0);
-}
-
-void setUniforms() {
-    // must be called after glUseProgram
-    glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, projMatrix);
-    glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, viewMatrix);
-    glUniformMatrix3fv(rotXLoc,  1, GL_FALSE, rotXMatrix);
-    glUniformMatrix3fv(rotYLoc,  1, GL_FALSE, rotYMatrix);
-    glUniformMatrix3fv(rotZLoc,  1, GL_FALSE, rotZMatrix);
-}
-// --- CUBE ---
-
-// --- MAIN ---
-void changeSize(int w, int h) {
-
-    float ratio;
-    // Prevent a divide by zero, when window is too short
-    // (you cant make a window of zero width).
-    if(h == 0)
-        h = 1;
-
-    // Set the viewport to be the entire window
-    glViewport(0, 0, w, h);
-
-    ratio = (1.0f * w) / h;
-    buildProjectionMatrix(projMatrix, 53.13f, ratio, 1.0f, 30.0f);
-}
-
-
 void renderScene(void);
 void processNormalKeys(unsigned char key, int x, int y);
+void setUniforms();
+void changeSize(int w, int h);
 
 
 int main(int argc, char **argv) {
@@ -224,7 +104,7 @@ void renderScene(void) {
     setUniforms();
 
     glBindVertexArray(vao[0]);
-    glDrawArrays(GL_TRIANGLES, 0, TRIANGLE_COUNT);
+    glDrawArrays(GL_TRIANGLES, 0, triangle_count);
 
     SDL_GL_SwapWindow(display_window);
 }
@@ -238,4 +118,29 @@ void processNormalKeys(unsigned char key, int x, int y) {
         //glDeleteShader(f);
         exit(0);
     }
+}
+
+void setUniforms() {
+    // must be called after glUseProgram
+    glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, projMatrix);
+    glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, viewMatrix);
+    glUniformMatrix3fv(rotXLoc,  1, GL_FALSE, rotXMatrix);
+    glUniformMatrix3fv(rotYLoc,  1, GL_FALSE, rotYMatrix);
+    glUniformMatrix3fv(rotZLoc,  1, GL_FALSE, rotZMatrix);
+}
+
+
+void changeSize(int w, int h) {
+
+    float ratio;
+    // Prevent a divide by zero, when window is too short
+    // (you cant make a window of zero width).
+    if(h == 0)
+        h = 1;
+
+    // Set the viewport to be the entire window
+    glViewport(0, 0, w, h);
+
+    ratio = (1.0f * w) / h;
+    buildProjectionMatrix(projMatrix, 53.13f, ratio, 1.0f, 30.0f);
 }
