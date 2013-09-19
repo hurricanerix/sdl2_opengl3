@@ -6,10 +6,26 @@
 #include <SDL2/SDL.h>
 
 #include "3dmath.h"
+#include "text.h"
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
 
+float rotXMatrix[9];
+float rotYMatrix[9];
+float rotZMatrix[9];
+char *vertexFileName = "resources/shaders/basic.vert";
+char *fragmentFileName = "resources/shaders/basic.frag";
+GLuint p,v,f;
+GLuint vertexLoc, colorLoc;
+GLuint projMatrixLoc, viewMatrixLoc;
+GLuint rotXLoc, rotYLoc, rotZLoc;
+GLuint vao[3];
+float projMatrix[16];
+float viewMatrix[16];
+#define printOpenGLError() printOglError(__FILE__, __LINE__)
+
+// --- CUBE ---
 #define A -1.0f, -1.0f, -1.0f, 1.0f
 #define B  1.0f, -1.0f, -1.0f, 1.0f
 #define C -1.0f,  1.0f, -1.0f, 1.0f
@@ -19,13 +35,7 @@ SDL_Renderer* display_renderer;
 #define G -1.0f,  1.0f,  1.0f, 1.0f
 #define H -1.0f, -1.0f,  1.0f, 1.0f
 
-#define TRIANGLE_COUNT (36)
-
-float rotXMatrix[9];
-float rotYMatrix[9];
-float rotZMatrix[9];
-
-float vertices1[] = {
+float vertices[] = {
     A, B, C,
     D, C, B,
     B, E, D,
@@ -40,7 +50,9 @@ float vertices1[] = {
     H, E, A
 };
 
-float colors1[] = {
+#define TRIANGLE_COUNT (36)
+
+float colors[] = {
     0.0f, 0.0f, 1.0f, 1.0f,
     0.0f, 0.0f, 1.0f, 1.0f,
     0.0f, 0.0f, 1.0f, 1.0f,
@@ -84,42 +96,6 @@ float colors1[] = {
     1.0f, 0.0f, 0.0f, 1.0f
 };
 
-// Shader Names
-char *vertexFileName = "resources/shaders/basic.vert";
-char *fragmentFileName = "resources/shaders/basic.frag";
-
-// Program and Shader Identifiers
-GLuint p,v,f;
-
-// Vertex Attribute Locations
-GLuint vertexLoc, colorLoc;
-
-// Uniform variable Locations
-GLuint projMatrixLoc, viewMatrixLoc;
-GLuint rotXLoc, rotYLoc, rotZLoc;
-
-// Vertex Array Objects Identifiers
-GLuint vao[3];
-
-// storage for Matrices
-float projMatrix[16];
-float viewMatrix[16];
-
-void changeSize(int w, int h) {
-
-    float ratio;
-    // Prevent a divide by zero, when window is too short
-    // (you cant make a window of zero width).
-    if(h == 0)
-        h = 1;
-
-    // Set the viewport to be the entire window
-    glViewport(0, 0, w, h);
-
-    ratio = (1.0f * w) / h;
-    buildProjectionMatrix(projMatrix, 53.13f, ratio, 1.0f, 30.0f);
-}
-
 void setupBuffers() {
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CW);
@@ -134,13 +110,13 @@ void setupBuffers() {
     glGenBuffers(2, buffers);
     // bind buffer for vertices and copy data into buffer
     glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(vertexLoc);
     glVertexAttribPointer(vertexLoc, 4, GL_FLOAT, 0, 0, 0);
 
     // bind buffer for colors and copy data into buffer
     glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors1), colors1, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
     glEnableVertexAttribArray(colorLoc);
     glVertexAttribPointer(colorLoc, 4, GL_FLOAT, 0, 0, 0);
 }
@@ -153,44 +129,9 @@ void setUniforms() {
     glUniformMatrix3fv(rotYLoc,  1, GL_FALSE, rotYMatrix);
     glUniformMatrix3fv(rotZLoc,  1, GL_FALSE, rotZMatrix);
 }
+// --- CUBE ---
 
-void renderScene(void) {
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    static float x_rot, y_rot, z_rot;
-    x_rot += 0.02;
-    y_rot += 0.05;
-    z_rot += 0.01;
-
-    get_x_rot_matrix(rotXMatrix, x_rot);
-    get_y_rot_matrix(rotYMatrix, y_rot);
-    get_z_rot_matrix(rotZMatrix, z_rot);
-
-    setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
-
-    glUseProgram(p);
-    setUniforms();
-
-    glBindVertexArray(vao[0]);
-    glDrawArrays(GL_TRIANGLES, 0, TRIANGLE_COUNT);
-
-    //glutSwapBuffers();
-    SDL_GL_SwapWindow(display_window);
-}
-
-void processNormalKeys(unsigned char key, int x, int y) {
-
-    if (key == 27) {
-        glDeleteVertexArrays(1,vao);
-        glDeleteProgram(p);
-        glDeleteShader(v);
-        glDeleteShader(f);
-        exit(0);
-    }
-}
-
-#define printOpenGLError() printOglError(__FILE__, __LINE__)
-
+// --- SHADER ---
 int printOglError(char *file, int line)
 {
     //
@@ -244,33 +185,7 @@ void printProgramInfoLog(GLuint obj)
     }
 }
 
-char *textFileRead(char *fn) {
 
-
-    FILE *fp;
-    char *content = NULL;
-
-    int count=0;
-
-    if (fn != NULL) {
-        fp = fopen(fn,"rt");
-
-        if (fp != NULL) {
-
-      fseek(fp, 0, SEEK_END);
-      count = ftell(fp);
-      rewind(fp);
-
-            if (count > 0) {
-                content = (char *)malloc(sizeof(char) * (count+1));
-                count = fread(content,sizeof(char),count,fp);
-                content[count] = '\0';
-            }
-            fclose(fp);
-        }
-    }
-    return content;
-}
 
 GLuint setupShaders() {
 
@@ -317,6 +232,28 @@ GLuint setupShaders() {
 
     return(p);
 }
+// --- SHADER ---
+
+// --- MAIN ---
+void changeSize(int w, int h) {
+
+    float ratio;
+    // Prevent a divide by zero, when window is too short
+    // (you cant make a window of zero width).
+    if(h == 0)
+        h = 1;
+
+    // Set the viewport to be the entire window
+    glViewport(0, 0, w, h);
+
+    ratio = (1.0f * w) / h;
+    buildProjectionMatrix(projMatrix, 53.13f, ratio, 1.0f, 30.0f);
+}
+
+
+void renderScene(void);
+void processNormalKeys(unsigned char key, int x, int y);
+
 
 int main(int argc, char **argv) {
     SDL_Init(SDL_INIT_VIDEO);
@@ -373,4 +310,38 @@ int main(int argc, char **argv) {
     SDL_Quit();
 
     return 0;
+}
+
+void renderScene(void) {
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    static float x_rot, y_rot, z_rot;
+    x_rot += 0.02;
+    y_rot += 0.05;
+    z_rot += 0.01;
+
+    get_x_rot_matrix(rotXMatrix, x_rot);
+    get_y_rot_matrix(rotYMatrix, y_rot);
+    get_z_rot_matrix(rotZMatrix, z_rot);
+
+    setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
+
+    glUseProgram(p);
+    setUniforms();
+
+    glBindVertexArray(vao[0]);
+    glDrawArrays(GL_TRIANGLES, 0, TRIANGLE_COUNT);
+
+    SDL_GL_SwapWindow(display_window);
+}
+
+void processNormalKeys(unsigned char key, int x, int y) {
+
+    if (key == 27) {
+        glDeleteVertexArrays(1,vao);
+        glDeleteProgram(p);
+        //glDeleteShader(v);
+        //glDeleteShader(f);
+        exit(0);
+    }
 }

@@ -2,7 +2,7 @@ CC=gcc -std=gnu99
 CFLAGS=-g -Wall -Werror -O3 -c -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE 
 LDFLAGS=-L/usr/local/lib -lSDLmain -lSDL2 -Wl,-framework,Cocoa -framework GLUT -framework OpenGL
 EXECUTABLES=main.c
-SOURCES=3dmath.c shader.c
+SOURCES=3dmath.c shader.c text.c
 HEADERS=$(SOURCES:%.c=%.h)
 OBJECTS=$(EXECUTABLES:%.c=%.o) $(SOURCES:%.c=%.o) 
 
