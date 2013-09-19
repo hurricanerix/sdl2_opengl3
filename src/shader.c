@@ -9,7 +9,7 @@
 
 GLuint vertexLoc, colorLoc;
 GLuint projMatrixLoc, viewMatrixLoc;
-GLuint rotXLoc, rotYLoc, rotZLoc;
+GLuint rotMatrixLoc;
 
 
 int printOglError(char *file, int line) {
@@ -104,9 +104,7 @@ GLuint setupShaders(char *vertexFileName, char *fragmentFileName) {
 
     projMatrixLoc = glGetUniformLocation(p, "projMatrix");
     viewMatrixLoc = glGetUniformLocation(p, "viewMatrix");
-    rotXLoc = glGetUniformLocation(p, "rot_x");
-    rotYLoc = glGetUniformLocation(p, "rot_y");
-    rotZLoc = glGetUniformLocation(p, "rot_z");
+    rotMatrixLoc = glGetUniformLocation(p, "rotMatrix");
 
     return(p);
 }

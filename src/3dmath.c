@@ -5,47 +5,26 @@
 
 #include "3dmath.h"
 
-float rotXMatrix[9] = {
-    1.0f, 0.0f, 0.0f,
-    0.0f, 9.9f, 9.9f,
-    0.0f, 9.9f, 9.9f};
 
-float rotYMatrix[9] = {
-    9.9f, 0.0f, 9.9f,
-    0.0f, 1.0f, 0.0f,
-    9.9f, 0.0f, 9.9f};
-
-float rotZMatrix[9] = {
-    9.9f, 9.9f, 0.0f,
-    9.9f, 9.9f, 0.0f,
-    0.0f, 0.0f, 1.0f};
-
-void get_x_rot_matrix(float *m, float angle) {
+void get_rot_matrix(float *m, float x, float y, float z) {
     assert(m != NULL);
 
-    // x
-    rotXMatrix[4] = cos(angle);
-    rotXMatrix[5] = -sin(angle);
-    rotXMatrix[7] = sin(angle);
-    rotXMatrix[8] = cos(angle);
-}
+    float c1 = cos(x);
+    float c2 = cos(y);
+    float c3 = cos(z);
+    float s1 = sin(x);
+    float s2 = sin(y);
+    float s3 = sin(z);
 
-void get_y_rot_matrix(float *m, float angle) {
-    assert(m != NULL);
-    // y
-    rotYMatrix[0] = cos(angle);
-    rotYMatrix[2] = sin(angle);
-    rotYMatrix[6] = -sin(angle);
-    rotYMatrix[8] = cos(angle);
-}
-
-void get_z_rot_matrix(float *m, float angle) {
-    assert(m != NULL);
-    // z
-    rotZMatrix[0] = cos(angle);
-    rotZMatrix[1] = -sin(angle);
-    rotZMatrix[3] = sin(angle);
-    rotZMatrix[4] = cos(angle);
+    m[0] = c2 * c3;
+    m[1] = -c2 * s3;
+    m[2] = s2;
+    m[3] = (c1 * s3) + (c3 * s1 * s2);
+    m[4] = (c1 * c3) - (s1 * s2 * s3);
+    m[5] = -c2 * s1;
+    m[6] = (s1 * s3) - (c1 * c3 * s2);
+    m[7] = (c3 * s1) + (c1 * s2 * s3);
+    m[8] = c1 * c2;
 }
 
 // ----------------------------------------------------

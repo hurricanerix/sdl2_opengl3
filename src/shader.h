@@ -3,7 +3,7 @@
 
 extern GLuint vertexLoc, colorLoc;
 extern GLuint projMatrixLoc, viewMatrixLoc;
-extern GLuint rotXLoc, rotYLoc, rotZLoc;
+extern GLuint rotMatrixLoc;
 
 #define printOpenGLError() printOglError(__FILE__, __LINE__)
 GLuint setupShaders(char *vertexFileName, char *fragmentFileName);

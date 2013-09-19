@@ -1,9 +1,7 @@
 #ifndef __3D_MATH_H__
 #define __3D_MATH_H__
 
-void get_x_rot_matrix(float *m, float angle);
-void get_y_rot_matrix(float *m, float angle);
-void get_z_rot_matrix(float *m, float angle);
+void get_rot_matrix(float *m, float x, float y, float z);
 
 void crossProduct( float *a, float *b, float *res);
 void normalize(float *a);

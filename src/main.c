@@ -12,9 +12,7 @@
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
-float rotXMatrix[9];
-float rotYMatrix[9];
-float rotZMatrix[9];
+float rotMatrix[9];
 char *vertexFileName = "resources/shaders/basic.vert";
 char *fragmentFileName = "resources/shaders/basic.frag";
 GLuint p,v,f;
@@ -88,14 +86,12 @@ int main(int argc, char **argv) {
 void renderScene(void) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    static float x_rot, y_rot, z_rot;
-    x_rot += 0.02;
-    y_rot += 0.05;
-    z_rot += 0.01;
+    static float x, y, z;
+    x += 0.02;
+    y += 0.05;
+    z += 0.01;
 
-    get_x_rot_matrix(rotXMatrix, x_rot);
-    get_y_rot_matrix(rotYMatrix, y_rot);
-    get_z_rot_matrix(rotZMatrix, z_rot);
+    get_rot_matrix(rotMatrix, x, y, z);
 
     setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
     glUseProgram(p);
@@ -122,9 +118,7 @@ void setUniforms() {
     // must be called after glUseProgram
     glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, projMatrix);
     glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, viewMatrix);
-    glUniformMatrix3fv(rotXLoc,  1, GL_FALSE, rotXMatrix);
-    glUniformMatrix3fv(rotYLoc,  1, GL_FALSE, rotYMatrix);
-    glUniformMatrix3fv(rotZLoc,  1, GL_FALSE, rotZMatrix);
+    glUniformMatrix3fv(rotMatrixLoc,  1, GL_FALSE, rotMatrix);
 }
 
 
