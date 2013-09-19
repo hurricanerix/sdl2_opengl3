@@ -7,6 +7,7 @@
 
 #include "3dmath.h"
 #include "text.h"
+#include "shader.h"
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
@@ -17,13 +18,10 @@ float rotZMatrix[9];
 char *vertexFileName = "resources/shaders/basic.vert";
 char *fragmentFileName = "resources/shaders/basic.frag";
 GLuint p,v,f;
-GLuint vertexLoc, colorLoc;
-GLuint projMatrixLoc, viewMatrixLoc;
-GLuint rotXLoc, rotYLoc, rotZLoc;
+
 GLuint vao[3];
 float projMatrix[16];
 float viewMatrix[16];
-#define printOpenGLError() printOglError(__FILE__, __LINE__)
 
 // --- CUBE ---
 #define A -1.0f, -1.0f, -1.0f, 1.0f
@@ -131,109 +129,6 @@ void setUniforms() {
 }
 // --- CUBE ---
 
-// --- SHADER ---
-int printOglError(char *file, int line)
-{
-    //
-    // Returns 1 if an OpenGL error occurred, 0 otherwise.
-    //
-    GLenum glErr;
-    int    retCode = 0;
-
-    glErr = glGetError();
-    while (glErr != GL_NO_ERROR)
-    {
-        //printf("glError in file %s @ line %d: %s\n", file, line, gluErrorString(glErr));
-        printf("glError in file %s @ line %d: \n", file, line);
-        retCode = 1;
-        glErr = glGetError();
-    }
-    return retCode;
-}
-
-void printShaderInfoLog(GLuint obj)
-{
-    int infologLength = 0;
-    int charsWritten  = 0;
-    char *infoLog;
-
-    glGetShaderiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
-
-    if (infologLength > 0)
-    {
-        infoLog = (char *)malloc(infologLength);
-        glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
-        printf("%s\n",infoLog);
-        free(infoLog);
-    }
-}
-
-void printProgramInfoLog(GLuint obj)
-{
-    int infologLength = 0;
-    int charsWritten  = 0;
-    char *infoLog;
-
-    glGetProgramiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
-
-    if (infologLength > 0)
-    {
-        infoLog = (char *)malloc(infologLength);
-        glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog);
-        printf("%s\n",infoLog);
-        free(infoLog);
-    }
-}
-
-
-
-GLuint setupShaders() {
-
-    char *vs = NULL,*fs = NULL;
-
-    GLuint p,v,f;
-
-    v = glCreateShader(GL_VERTEX_SHADER);
-    f = glCreateShader(GL_FRAGMENT_SHADER);
-
-    vs = textFileRead(vertexFileName);
-    fs = textFileRead(fragmentFileName);
-
-    const char * vv = vs;
-    const char * ff = fs;
-
-    glShaderSource(v, 1, &vv,NULL);
-    glShaderSource(f, 1, &ff,NULL);
-
-    free(vs);free(fs);
-
-    glCompileShader(v);
-    glCompileShader(f);
-
-    printShaderInfoLog(v);
-    printShaderInfoLog(f);
-
-    p = glCreateProgram();
-    glAttachShader(p,v);
-    glAttachShader(p,f);
-
-    glBindFragDataLocation(p, 0, "outputF");
-    glLinkProgram(p);
-    printProgramInfoLog(p);
-
-    vertexLoc = glGetAttribLocation(p,"position");
-    colorLoc = glGetAttribLocation(p, "color"); 
-
-    projMatrixLoc = glGetUniformLocation(p, "projMatrix");
-    viewMatrixLoc = glGetUniformLocation(p, "viewMatrix");
-    rotXLoc = glGetUniformLocation(p, "rot_x");
-    rotYLoc = glGetUniformLocation(p, "rot_y");
-    rotZLoc = glGetUniformLocation(p, "rot_z");
-
-    return(p);
-}
-// --- SHADER ---
-
 // --- MAIN ---
 void changeSize(int w, int h) {
 
@@ -287,7 +182,7 @@ int main(int argc, char **argv) {
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2,0.2,0.2,1.0);
 
-    p = setupShaders();
+    p = setupShaders(vertexFileName, fragmentFileName);
     setupBuffers();
 
     SDL_Event event;
@@ -325,7 +220,6 @@ void renderScene(void) {
     get_z_rot_matrix(rotZMatrix, z_rot);
 
     setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
-
     glUseProgram(p);
     setUniforms();
 
