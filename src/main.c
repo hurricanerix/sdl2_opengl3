@@ -25,8 +25,19 @@ void processNormalKeys(unsigned char key, int x, int y);
 void setUniforms();
 void changeSize(int w, int h);
 
+void print_help(char *command) {
+    fprintf(stderr, "%s help:\n", command);
+    fprintf(stderr, "%s <ply file>\n\n", command);
+}
 
 int main(int argc, char **argv) {
+
+    if (argc < 2) {
+        print_help(argv[0]);
+        exit(1);
+    }
+    char *ply_file = argv[1];
+
     SDL_Init(SDL_INIT_VIDEO);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -59,7 +70,7 @@ int main(int argc, char **argv) {
     glClearColor(0.2,0.2,0.2,1.0);
 
     p = setupShaders(vertexFileName, fragmentFileName);
-    setupBuffers();
+    setupBuffers(ply_file);
 
     SDL_Event event;
 
@@ -97,8 +108,7 @@ void renderScene(void) {
     glUseProgram(p);
     setUniforms();
 
-    glBindVertexArray(vao[0]);
-    glDrawArrays(GL_TRIANGLES, 0, triangle_count);
+    render_object();
 
     SDL_GL_SwapWindow(display_window);
 }
@@ -106,7 +116,7 @@ void renderScene(void) {
 void processNormalKeys(unsigned char key, int x, int y) {
 
     if (key == 27) {
-        glDeleteVertexArrays(1,vao);
+        destroy_object();
         glDeleteProgram(p);
         //glDeleteShader(v);
         //glDeleteShader(f);
