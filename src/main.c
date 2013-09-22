@@ -31,10 +31,31 @@ void print_help(char *command) {
     fprintf(stderr, "%s <ply file>\n\n", command);
 }
 
+void log_opengl_info(void)
+{
+    log_info("GL_VENDOR: %s", glGetString(GL_VENDOR));
+    log_info("GL_RENDERER: %s", glGetString(GL_RENDERER));
+    log_info("GL_VERSION: %s", glGetString(GL_VERSION));
+    log_info("GL_SHADING_LANGUAGE_VERSION: %s", glGetString(
+        GL_SHADING_LANGUAGE_VERSION));
+}
+
+void log_renderer_info(SDL_RendererInfo *ri)
+{
+    log_info("Renderer Name: %s", ri->name);
+    log_info("Renderer Flags: %d", ri->flags);
+    log_info("Renderer Num Texture Formats: %d", ri->num_texture_formats);
+    for (int i = 0; i < ri->num_texture_formats; i++) {
+        log_info("Renderer Texture Format[%d]: %d", i, ri->texture_formats[i]);
+    }
+    log_info("Renderer Max Texture Width: %d", ri->max_texture_width);
+    log_info("Renderer Max Texture Height: %d", ri->max_texture_height);
+}
+
 int main(int argc, char **argv)
 {
     init_logger(stdout, stdout, stdout, stderr);
-    log_debug("starting application");
+    log_info("Starting Application");
 
     if (argc < 2) {
         print_help(argv[0]);
@@ -42,7 +63,9 @@ int main(int argc, char **argv)
     }
     char *ply_file = argv[1];
 
+    log_info("Initializing SDL...");
     SDL_Init(SDL_INIT_VIDEO);
+    log_info("Initializing SDL Complete");
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
@@ -50,23 +73,22 @@ int main(int argc, char **argv)
         SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_RendererInfo display_renderer_info;
+    log_info("Creating window and renderer...");
     SDL_CreateWindowAndRenderer(
         800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL, &display_window, &display_renderer);
+    log_info("Creating window and renderer Complete");
+
     SDL_GetRendererInfo(display_renderer, &display_renderer_info);
     if ((display_renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 ||
         (display_renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
+        log_error("No render surface found");
         // TODO: Handle this. We have no render surface and not accelerated.
     }
+    log_renderer_info(&display_renderer_info);
+
     SDL_GL_SetSwapInterval(1);
 
-    printf("-- OpenGL Information --\n");
-    printf("---{info-start}---\n");
-    printf("GL_VENDOR: %s\n", glGetString(GL_VENDOR));
-    printf("GL_RENDERER: %s\n", glGetString(GL_RENDERER));
-    printf("GL_VERSION: %s\n", glGetString(GL_VERSION));
-    printf("GL_SHADING_LANGUAGE_VERSION: %s\n", glGetString(
-        GL_SHADING_LANGUAGE_VERSION));
-    printf("---{info-stop}---\n");
+    log_opengl_info();
 
     changeSize(800, 600);
 
@@ -87,7 +109,7 @@ int main(int argc, char **argv)
         switch (event.type)
         {
         case SDL_QUIT:
-            log_debug("terminating application");
+            log_info("terminating application");
             return 0;
         default:
             break;

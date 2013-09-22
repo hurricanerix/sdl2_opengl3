@@ -10,6 +10,11 @@ FILE *log_info;
 FILE *log_warning;
 FILE *log_error;
 
+char LOG_STR_DEBUG[] = "DEBUG";
+char LOG_STR_INFO[] = "INFO";
+char LOG_STR_WARNING[] = "WARNING";
+char LOG_STR_ERROR[] = "ERROR";
+
 void init_logger(FILE *debug, FILE *info, FILE *warning, FILE *error)
 {
     log_debug = debug;
@@ -21,21 +26,27 @@ void init_logger(FILE *debug, FILE *info, FILE *warning, FILE *error)
 void _log_message(enum log_mode mode, char *file, int line, char *msg, ...)
 {
     FILE *out = NULL;
+    char *log_str = NULL;
 
     switch(mode) {
     case DEBUG:
         #ifdef _DEBUG
         out = log_debug;
+        log_str = LOG_STR_DEBUG;
         #endif
         break;
     case INFO:
         out = log_info;
+        log_str = LOG_STR_INFO;
         break;
     case WARNING:
         out = log_warning;
+        log_str = LOG_STR_WARNING;
         break;
     case ERROR:
         out = log_error;
+        log_str = LOG_STR_ERROR;
+        break;
         break;
     }
 
@@ -47,7 +58,7 @@ void _log_message(enum log_mode mode, char *file, int line, char *msg, ...)
     int done;
 
     va_start (arg, msg);
-    fprintf(out, "DEBUG %d %s %d: ", (int)time(NULL), file, line);
+    fprintf(out, "%s %d %s %d: ", log_str, (int)time(NULL), file, line);
     done = vfprintf (out, msg, arg);
     fprintf(out, "\n");
     va_end (arg);
