@@ -33,8 +33,8 @@ void print_help(char *command) {
 
 int main(int argc, char **argv)
 {
-    init_logger(NULL, NULL);
-    log_debug("staring application");
+    init_logger(stdout, stdout, stdout, stderr);
+    log_debug("starting application");
 
     if (argc < 2) {
         print_help(argv[0]);
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
         switch (event.type)
         {
         case SDL_QUIT:
-            log_debug("application terminating");
+            log_debug("terminating application");
             return 0;
         default:
             break;

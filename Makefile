@@ -1,5 +1,5 @@
 CC=gcc -std=gnu99
-CFLAGS=-g -Wall -Werror -O3 -c -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE -DLOG_DEBUG
+CFLAGS=-g -Wall -Werror -O3 -c -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE -D_DEBUG
 LDFLAGS=-L/usr/local/lib -lSDLmain -lSDL2 -Wl,-framework,Cocoa -framework GLUT -framework OpenGL
 EXECUTABLES=main.c
 SOURCES=3dmath.c shader.c text.c object.c plyfile.c logger.c

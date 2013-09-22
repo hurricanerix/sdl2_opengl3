@@ -1,43 +1,54 @@
 #include <stdio.h>
 #include <time.h>
+#include <stdarg.h>
 
 #include "logger.h"
 
 
-FILE *log_out;
-FILE *log_err;
+FILE *log_debug;
+FILE *log_info;
+FILE *log_warning;
+FILE *log_error;
 
-void init_logger(FILE *out, FILE *err) 
+void init_logger(FILE *debug, FILE *info, FILE *warning, FILE *error)
 {
-    log_out = out;
-    log_err = err;
+    log_debug = debug;
+    log_info = info;
+    log_warning = warning;
+    log_error = error;
+}
+
+void _log_message(enum log_mode mode, char *file, int line, char *msg, ...)
+{
+    FILE *out = NULL;
+
+    switch(mode) {
+    case DEBUG:
+        #ifdef _DEBUG
+        out = log_debug;
+        #endif
+        break;
+    case INFO:
+        out = log_info;
+        break;
+    case WARNING:
+        out = log_warning;
+        break;
+    case ERROR:
+        out = log_error;
+        break;
+    }
 
     if (out == NULL) {
-        log_out = stdout;
+        return;
     }
-    if (err == NULL) {
-        log_err = stderr;
-    }
-}
 
-void _log_debug(char *file, int line, char *msg)
-{
-#   ifdef LOG_DEBUG
-    fprintf(log_out, "DEBUG %d %s %d: %s\n", (int)time(NULL), file, line, msg);
-#   endif
-}
+    va_list arg;
+    int done;
 
-void _log_info(char *file, int line, char *msg)
-{
-    fprintf(log_out, "INFO %d %s %d: %s\n", (int)time(NULL), file, line, msg);
-}
-
-void _log_warning(char *file, int line, char *msg)
-{
-    fprintf(log_out, "WARNING %d %s %d: %s\n", (int)time(NULL), file, line, msg);
-}
-
-void _log_error(char *file, int line, char *msg)
-{
-    fprintf(log_err, "ERROR %d %s %d: %s\n", (int)time(NULL), file, line, msg);
+    va_start (arg, msg);
+    fprintf(out, "DEBUG %d %s %d: ", (int)time(NULL), file, line);
+    done = vfprintf (out, msg, arg);
+    fprintf(out, "\n");
+    va_end (arg);
 }
