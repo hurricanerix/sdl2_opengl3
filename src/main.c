@@ -5,6 +5,7 @@
 #include <OpenGL/gl3.h>
 #include <SDL2/SDL.h>
 
+#include "logger.h"
 #include "3dmath.h"
 #include "text.h"
 #include "shader.h"
@@ -30,7 +31,10 @@ void print_help(char *command) {
     fprintf(stderr, "%s <ply file>\n\n", command);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
+    init_logger(NULL, NULL);
+    log_debug("staring application");
 
     if (argc < 2) {
         print_help(argv[0]);
@@ -83,6 +87,7 @@ int main(int argc, char **argv) {
         switch (event.type)
         {
         case SDL_QUIT:
+            log_debug("application terminating");
             return 0;
         default:
             break;
