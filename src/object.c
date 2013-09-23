@@ -4,6 +4,7 @@
 #include <math.h>
 #include <OpenGL/gl3.h>
 
+#include "logger.h"
 #include "shader.h"
 #include "object.h"
 #include "plyfile.h"
@@ -32,16 +33,15 @@ GLuint buffers[2];
 void read_object(char *file_name);
 
 void setupBuffers(char *file_name) {
+    log_info("Setup Buffers...");
     assert(file_name != NULL);
 
-    printf("TEST:");
     read_object(file_name);
     assert(vertex_count != -1);
     assert(face_count != -1);
 
     //glEnable(GL_CULL_FACE);
     //glFrontFace(GL_CW);
-
 
     glGenVertexArrays(1, vao);
     glBindVertexArray(vao[0]);
@@ -64,6 +64,7 @@ void setupBuffers(char *file_name) {
     glEnableVertexAttribArray(colorLoc);
     glVertexAttribPointer(colorLoc, 4, GL_FLOAT, 0, 0, 0);
     */
+    log_info("Setup Buffers Complete");
 }
 
 void render_object() {
@@ -71,6 +72,7 @@ void render_object() {
 }
 
 void destroy_object() {
+    log_info("Destroy Object...");
     glDisableVertexAttribArray(vertexLoc);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -86,9 +88,13 @@ void destroy_object() {
     free(faces);
     face_count = -1;
     vertex_count = -1;
+    log_info("Destroy Object Complete");
 }
 
 void read_object(char *file_name) {
+    assert(file_name != NULL);
+    log_info("Read Object '%s'...", file_name);
+
     int i,j,k;
     PlyFile *ply;
     int nelems;
@@ -106,16 +112,13 @@ void read_object(char *file_name) {
     int num_obj_info;
     char **obj_info;
 
-    printf("READING FILE\n");
-
     // open a PLY file for reading 
+    log_info("Open PLY For Reading");
     ply = ply_open_for_reading(file_name, &nelems, &elist, &file_type, &version);
 
-    printf("READING FILE\n");
-
     // print what we found out about the file 
-    printf ("version %f\n", version);
-    printf ("type %d\n", file_type);
+    log_info("Version: %f", version);
+    log_info("Type: %d", file_type);
 
     // go through each kind of element that we learned is in the file 
     // and read them 
@@ -126,12 +129,13 @@ void read_object(char *file_name) {
         plist = ply_get_element_description (ply, elem_name, &num_elems, &nprops);
 
         // print the name of the element, for debugging 
-        printf ("element %s %d\n", elem_name, num_elems);
+        log_info("Element %s %d", elem_name, num_elems);
 
         // if we're on vertex elements, read them in 
         if (equal_strings ("vertex", elem_name)) {
             vertex_count = num_elems * 3;
             vertices = malloc(sizeof(float) * vertex_count);
+
             // create a vertex list to hold all the vertices 
             vlist = (Vertex **) malloc (sizeof (Vertex *) * num_elems);
 
@@ -144,10 +148,12 @@ void read_object(char *file_name) {
             for (j = 0; j < num_elems; j++) {
                 // grab and element from the file 
                 vlist[j] = (Vertex *) malloc (sizeof (Vertex));
+                printf("foo\n");
                 ply_get_element (ply, (void *) vlist[j]);
+                printf("bar\n");
 
                 // print out vertex x,y,z for debugging 
-                printf ("vertex: %g %g %g\n", vlist[j]->x, vlist[j]->y, vlist[j]->z);
+                log_info("Vertex: %g %g %g", vlist[j]->x, vlist[j]->y, vlist[j]->z);
                 int base = j * 3;
                 vertices[base] = vlist[j]->x;
                 vertices[base + 1] = vlist[j]->y;
@@ -173,7 +179,7 @@ void read_object(char *file_name) {
                 ply_get_element (ply, (void *) flist[j]);
 
                 // print out face info, for debugging 
-                printf ("face: %d, list = ", flist[j]->intensity);
+                log_info("Face: %d, list = ", flist[j]->intensity);
 
                 int base = j * 3;
                 faces[base] = flist[j]->verts[0];
@@ -181,29 +187,29 @@ void read_object(char *file_name) {
                 faces[base + 2] = flist[j]->verts[2];
 
                 for (k = 0; k < flist[j]->nverts; k++)
-                    printf ("%d ", flist[j]->verts[k]);
-                printf ("\n");
-
+                    log_info("-- %d ", flist[j]->verts[k]);
             }
         }
 
-            // print out the properties we got, for debugging 
-            for (j = 0; j < nprops; j++)
-                printf ("property %s\n", plist[j]->name);
-            }
+        // print out the properties we got, for debugging 
+        for (j = 0; j < nprops; j++)
+            log_info("property %s", plist[j]->name);
+        }
 
-            // grab and print out the comments in the file 
-            comments = ply_get_comments (ply, &num_comments);
-            for (i = 0; i < num_comments; i++)
-                printf ("comment = '%s'\n", comments[i]);
+        // grab and print out the comments in the file 
+        comments = ply_get_comments (ply, &num_comments);
+        for (i = 0; i < num_comments; i++) {
+            log_info("comment = '%s'", comments[i]);
+        }
 
-                // grab and print out the object information 
-                obj_info = ply_get_obj_info (ply, &num_obj_info);
-                for (i = 0; i < num_obj_info; i++)
-                    printf ("obj_info = '%s'\n", obj_info[i]);
+        // grab and print out the object information 
+        obj_info = ply_get_obj_info (ply, &num_obj_info);
+        for (i = 0; i < num_obj_info; i++) {
+            log_info("obj_info = '%s'", obj_info[i]);
+        }
 
-                    // close the PLY file 
-                    ply_close (ply);
+        log_info("Closing PLY");
+        ply_close(ply);
 
-    fprintf(stderr,"DONE READING FILE\n");
+    log_info("Read Object Complete");
 }
