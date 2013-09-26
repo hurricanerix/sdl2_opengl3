@@ -54,13 +54,17 @@ void log_renderer_info(SDL_RendererInfo *ri)
 
 int main(int argc, char **argv)
 {
-    init_logger(stdout, stdout, stdout, stderr);
-    log_info("Starting Application");
-
     if (argc < 2) {
         print_help(argv[0]);
         exit(1);
     }
+    FILE *debug_out = NULL;
+    if (argc == 3) {
+        debug_out = stderr;
+    }
+    init_logger(debug_out, stdout, stderr, stderr);
+    log_info("Starting Application");
+
     char *ply_file = argv[1];
 
     log_info("Initializing SDL...");

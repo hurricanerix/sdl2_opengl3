@@ -1,9 +1,9 @@
 ply
 format ascii 1.0
 element vertex 4171
-property float32 x
-property float32 y
-property float32 z
+property float x
+property float y
+property float z
 element face 8210
 property list uint int vertex_indices
 end_header
