@@ -42,7 +42,7 @@ void setupBuffers(char *file_name)
     assert(vertex_count != -1);
     assert(face_count != -1);
 
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     //glFrontFace(GL_CW);
 
     glGenVertexArrays(1, vao);
