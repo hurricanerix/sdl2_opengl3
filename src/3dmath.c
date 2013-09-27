@@ -3,11 +3,36 @@
 #include <memory.h>
 #include <stdio.h>
 
+#include "logger.h"
 #include "3dmath.h"
 
 
-void get_rot_matrix(float *m, float x, float y, float z) {
+void log_matrix(float *mat, int rowc, int colc)
+{
+    assert(mat != NULL);
+    log_debug("log_matrix {");
+    log_debug("  -in- mat - %x", mat);
+    log_debug("  -in- rowc - %d", rowc);
+    log_debug("  -in- colc - %d", colc);
+
+    for (int i = 0; i < rowc; i++) {
+        for (int j = 0; j < colc; j++) {
+            log_debug("mat[%d][%d] - %f", i, j, mat[rowc * i + colc]);
+        }
+    }
+
+    log_debug("log_matrix }");
+}
+
+
+void get_rot_matrix(float *m, float x, float y, float z)
+{
     assert(m != NULL);
+    log_debug("get_rot_matrix {");
+    log_debug("  -in- m - %x", m);
+    log_debug("  -in- x - %f", x);
+    log_debug("  -in- y - %f", y);
+    log_debug("  -in- z - %f", z);
 
     float c1 = cos(x);
     float c2 = cos(y);
@@ -25,6 +50,9 @@ void get_rot_matrix(float *m, float x, float y, float z) {
     m[6] = (s1 * s3) - (c1 * c3 * s2);
     m[7] = (c3 * s1) + (c1 * s2 * s3);
     m[8] = c1 * c2;
+
+    log_matrix(m, 3, 3);
+    log_debug("get_rot_matrix {");
 }
 
 // ----------------------------------------------------
@@ -32,21 +60,37 @@ void get_rot_matrix(float *m, float x, float y, float z) {
 //
 
 // res = a cross b;
-void crossProduct( float *a, float *b, float *res) {
+void crossProduct(float *a, float *b, float *res)
+{
+    assert(a != NULL);
+    assert(b != NULL);
+    assert(res != NULL);
+    log_debug("crossProduct {");
+    log_debug("  -in- a - %x", a);
+    log_debug("  -in- b - %x", b);
+    log_debug("  -in- res - %x", res);
 
     res[0] = a[1] * b[2]  -  b[1] * a[2];
     res[1] = a[2] * b[0]  -  b[2] * a[0];
     res[2] = a[0] * b[1]  -  b[0] * a[1];
+
+    log_debug("crossProduct }");
 }
 
 // Normalize a vec3
-void normalize(float *a) {
+void normalize(float *a)
+{
+    assert(a != NULL);
+    log_debug("normalize {");
+    log_debug("  -in- a - %x", a);
 
     float mag = sqrt(a[0] * a[0]  +  a[1] * a[1]  +  a[2] * a[2]);
 
     a[0] /= mag;
     a[1] /= mag;
     a[2] /= mag;
+
+    log_debug("normalize }");
 }
 
 // ----------------------------------------------------
@@ -55,7 +99,12 @@ void normalize(float *a) {
 
 // sets the square matrix mat to the identity matrix,
 // size refers to the number of rows (or columns)
-void setIdentityMatrix( float *mat, int size) {
+void setIdentityMatrix(float *mat, int size)
+{
+    assert(mat != NULL);
+    log_debug("setIdentityMatrix {");
+    log_debug("  -in- mat - %x", mat);
+    log_debug("  -in- size - %d", size);
 
     // fill matrix with 0s
     for (int i = 0; i < size * size; ++i)
@@ -64,12 +113,21 @@ void setIdentityMatrix( float *mat, int size) {
     // fill diagonal with 1s
     for (int i = 0; i < size; ++i)
         mat[i + i * size] = 1.0f;
+
+    log_matrix(mat, size, size);
+    log_debug("setIdentityMatrix }");
 }
 
 //
 // a = a * b;
 //
-void multMatrix(float *a, float *b) {
+void multMatrix(float *a, float *b)
+{
+    assert(a != NULL);
+    assert(b != NULL);
+    log_debug("multMatrix {");
+    log_debug("  -in- a - %x", a);
+    log_debug("  -in- b - %x", b);
 
     float res[16];
 
@@ -83,24 +141,44 @@ void multMatrix(float *a, float *b) {
     }
     memcpy(a, res, 16 * sizeof(float));
 
+    log_matrix(a, 4, 4);
+    log_matrix(b, 4, 4);
+    log_debug("multMatrix }");
 }
 
 // Defines a transformation matrix mat with a translation
-void setTranslationMatrix(float *mat, float x, float y, float z) {
+void setTranslationMatrix(float *mat, float x, float y, float z)
+{
+    assert(mat != NULL);
+    log_debug("setTranslationMatrix {");
+    log_debug("  -in- mat - %x", mat);
+    log_debug("  -in- x - %f", x);
+    log_debug("  -in- y - %f", y);
+    log_debug("  -in- z - %f", z);
 
-    setIdentityMatrix(mat,4);
+    setIdentityMatrix(mat, 4);
     mat[12] = x;
     mat[13] = y;
     mat[14] = z;
+
+    log_matrix(mat, 4, 4);
+    log_debug("setTranslationMatrix }");
 }
 
 // ----------------------------------------------------
 // Projection Matrix
 //
 
-void buildProjectionMatrix(
-        float *projMatrix, float fov, float ratio, float nearP, float farP) {
+void buildProjectionMatrix(float *projMatrix, float fov, float ratio,
+    float nearP, float farP)
+{
     assert(projMatrix != NULL);
+    log_debug("buildProjectionMatrix {");
+    log_debug("  -in- projMatrix - %x", projMatrix);
+    log_debug("  -in- fov - %f", fov);
+    log_debug("  -in- ratio - %f", ratio);
+    log_debug("  -in- nearP - %f", nearP);
+    log_debug("  -in- farP - %f", farP);
 
     float f = 1.0f / tan (fov * (M_PI / 360.0));
 
@@ -112,6 +190,9 @@ void buildProjectionMatrix(
     projMatrix[3 * 4 + 2] = (2.0f * farP * nearP) / (nearP - farP);
     projMatrix[2 * 4 + 3] = -1.0f;
     projMatrix[3 * 4 + 3] = 0.0f;
+
+    log_matrix(projMatrix, 4, 4);
+    log_debug("buildProjectionMatrix }");
 }
 
 // ----------------------------------------------------
@@ -122,8 +203,17 @@ void buildProjectionMatrix(
 //
 
 void setCamera(float *viewMatrix, float posX, float posY, float posZ,
-               float lookAtX, float lookAtY, float lookAtZ) {
+    float lookAtX, float lookAtY, float lookAtZ)
+{
     assert(viewMatrix != NULL);
+    log_debug("setCamera {");
+    log_debug("  -in- viewMatrix - %x", viewMatrix);
+    log_debug("  -in- posX - %f", posX);
+    log_debug("  -in- posY - %f", posY);
+    log_debug("  -in- posZ - %f", posZ);
+    log_debug("  -in- lookAtX - %f", lookAtX);
+    log_debug("  -in- lookAtY - %f", lookAtY);
+    log_debug("  -in- lookAtZ - %f", lookAtZ);
 
     float dir[3], right[3], up[3];
 
@@ -165,6 +255,7 @@ void setCamera(float *viewMatrix, float posX, float posY, float posZ,
     setTranslationMatrix(aux, -posX, -posY, -posZ);
 
     multMatrix(viewMatrix, aux);
-}
 
-// ----------------------------------------------------
+    log_matrix(viewMatrix, 4, 4);
+    log_debug("setCamera }");
+}

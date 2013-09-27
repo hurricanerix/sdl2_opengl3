@@ -2,10 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "logger.h"
 #include "text.h"
 
-char *textFileRead(char *fn) {
+char *textFileRead(char *fn)
+{
     assert(fn != NULL);
+    log_debug("textFileRead {");
+    log_debug("  -in- fn - %s", fn);
 
     FILE *fp;
     char *content = NULL;
@@ -29,5 +33,7 @@ char *textFileRead(char *fn) {
             fclose(fp);
         }
     }
+
+    log_debug("textFileRead }");
     return content;
 }

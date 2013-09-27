@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -20,28 +21,42 @@ GLuint p,v,f;
 float projMatrix[16];
 float viewMatrix[16];
 
+void render_scene();
+void process_keys(unsigned char key, int x, int y);
+void set_uniforms();
+void change_size(int w, int h);
 
-void renderScene(void);
-void processNormalKeys(unsigned char key, int x, int y);
-void setUniforms();
-void changeSize(int w, int h);
+void print_help(char *command)
+{
+    assert(command != NULL);
+    log_debug("print_help {");
+    log_debug("  -in- command - %s", command);
 
-void print_help(char *command) {
     fprintf(stderr, "%s help:\n", command);
     fprintf(stderr, "%s <ply file>\n\n", command);
+
+    log_debug("print_help }");
 }
 
-void log_opengl_info(void)
+void log_opengl_info()
 {
+    log_debug("log_opengl_info {");
+
     log_info("GL_VENDOR: %s", glGetString(GL_VENDOR));
     log_info("GL_RENDERER: %s", glGetString(GL_RENDERER));
     log_info("GL_VERSION: %s", glGetString(GL_VERSION));
     log_info("GL_SHADING_LANGUAGE_VERSION: %s", glGetString(
         GL_SHADING_LANGUAGE_VERSION));
+
+    log_debug("log_opengl_info }");
 }
 
 void log_renderer_info(SDL_RendererInfo *ri)
 {
+    assert(ri != NULL);
+    log_debug("log_renderer_info {");
+    log_debug("  -in- ri - %x", ri);
+
     log_info("Renderer Name: %s", ri->name);
     log_info("Renderer Flags: %d", ri->flags);
     log_info("Renderer Num Texture Formats: %d", ri->num_texture_formats);
@@ -50,9 +65,11 @@ void log_renderer_info(SDL_RendererInfo *ri)
     }
     log_info("Renderer Max Texture Width: %d", ri->max_texture_width);
     log_info("Renderer Max Texture Height: %d", ri->max_texture_height);
+
+    log_debug("log_renderer_info ");
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     if (argc < 2) {
         print_help(argv[0]);
@@ -62,8 +79,13 @@ int main(int argc, char **argv)
     if (argc == 3) {
         debug_out = stderr;
     }
+
     init_logger(debug_out, stdout, stderr, stderr);
-    log_info("Starting Application");
+    log_debug("main {");
+    log_debug("  -in- argc - %d", argc);
+    for (int i = 0; i < argc; i++) {
+        log_debug("  -in- argv[%d] - %s", i, argv[i]);
+    }
 
     char *ply_file = argv[1];
 
@@ -94,7 +116,7 @@ int main(int argc, char **argv)
 
     log_opengl_info();
 
-    changeSize(800, 600);
+    change_size(800, 600);
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2,0.2,0.2,1.0);
@@ -108,12 +130,12 @@ int main(int argc, char **argv)
     {
         SDL_PollEvent(&event);
 
-        renderScene();
+        render_scene();
 
         switch (event.type)
         {
         case SDL_QUIT:
-            log_info("terminating application");
+            log_debug("main }");
             return 0;
         default:
             break;
@@ -125,7 +147,9 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void renderScene(void) {
+void render_scene()
+{
+    log_debug("render_scene {");
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     static float x, y, z;
@@ -137,14 +161,21 @@ void renderScene(void) {
 
     setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
     glUseProgram(p);
-    setUniforms();
+    set_uniforms();
 
     render_object();
 
     SDL_GL_SwapWindow(display_window);
+
+    log_debug("render_scene }");
 }
 
-void processNormalKeys(unsigned char key, int x, int y) {
+void process_keys(unsigned char key, int x, int y)
+{
+    log_debug("process_keys {");
+    log_debug("  -in- key - %c", key);
+    log_debug("  -in- x - %d", x);
+    log_debug("  -in- y - %d", y);
 
     if (key == 27) {
         destroy_object();
@@ -153,17 +184,28 @@ void processNormalKeys(unsigned char key, int x, int y) {
         //glDeleteShader(f);
         exit(0);
     }
+
+    log_debug("process_keys {");
 }
 
-void setUniforms() {
+void set_uniforms()
+{
+    log_debug("set_uniforms {");
+
     // must be called after glUseProgram
     glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, projMatrix);
     glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, viewMatrix);
     glUniformMatrix3fv(rotMatrixLoc,  1, GL_FALSE, rotMatrix);
+
+    log_debug("set_uniforms }");
 }
 
 
-void changeSize(int w, int h) {
+void change_size(int w, int h)
+{
+    log_debug("change_size {");
+    log_debug("  -in- w - %d", w);
+    log_debug("  -in- h - %d", h);
 
     float ratio;
     // Prevent a divide by zero, when window is too short
@@ -176,4 +218,6 @@ void changeSize(int w, int h) {
 
     ratio = (1.0f * w) / h;
     buildProjectionMatrix(projMatrix, 53.13f, ratio, 1.0f, 30.0f);
+
+    log_debug("change_size }");
 }

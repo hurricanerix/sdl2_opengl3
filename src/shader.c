@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <OpenGL/gl3.h>
 
+#include "logger.h"
 #include "shader.h"
 #include "text.h"
 
@@ -12,8 +13,12 @@ GLuint projMatrixLoc, viewMatrixLoc;
 GLuint rotMatrixLoc;
 
 
-int printOglError(char *file, int line) {
+int printOglError(char *file, int line)
+{
     assert(file != NULL);
+    log_debug("printOglError {");
+    log_debug("  -in- file - %s", file);
+    log_debug("  -in- line - %d", line);
     //
     // Returns 1 if an OpenGL error occurred, 0 otherwise.
     //
@@ -21,33 +26,43 @@ int printOglError(char *file, int line) {
     int    retCode = 0;
 
     glErr = glGetError();
-    while (glErr != GL_NO_ERROR)
-    {
+    while (glErr != GL_NO_ERROR) {
         //printf("glError in file %s @ line %d: %s\n", file, line, gluErrorString(glErr));
         printf("glError in file %s @ line %d: \n", file, line);
         retCode = 1;
         glErr = glGetError();
     }
+
+    log_debug("printOglError }");
+    log_debug("  -out- retCode - %d", retCode);
     return retCode;
 }
 
-void printShaderInfoLog(GLuint obj) {
+void printShaderInfoLog(GLuint obj)
+{
+    log_debug("printShaderInfoLog {");
+    log_debug("  -in- obj - %d", obj);
+
     int infologLength = 0;
     int charsWritten  = 0;
     char *infoLog;
 
     glGetShaderiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
 
-    if (infologLength > 0)
-    {
+    if (infologLength > 0) {
         infoLog = (char *)malloc(infologLength);
         glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
         printf("%s\n",infoLog);
         free(infoLog);
     }
+
+    log_debug("printShaderInfoLog }");
 }
 
-void printProgramInfoLog(GLuint obj) {
+void printProgramInfoLog(GLuint obj)
+{
+    log_debug("printProgramInfoLog {");
+    log_debug("  -in- obj - %d", obj);
     int infologLength = 0;
     int charsWritten  = 0;
     char *infoLog;
@@ -61,11 +76,17 @@ void printProgramInfoLog(GLuint obj) {
         printf("%s\n",infoLog);
         free(infoLog);
     }
+
+    log_debug("printProgramInfoLog }");
 }
 
-GLuint setupShaders(char *vertexFileName, char *fragmentFileName) {
+GLuint setupShaders(char *vertexFileName, char *fragmentFileName)
+{
     assert(vertexFileName != NULL);
     assert(fragmentFileName != NULL);
+    log_debug("setupShaders {");
+    log_debug("  -in- vertexFileName - %s", vertexFileName);
+    log_debug("  -in- fragmentFileName - %s", fragmentFileName);
 
     char *vs = NULL,*fs = NULL;
 
@@ -106,5 +127,6 @@ GLuint setupShaders(char *vertexFileName, char *fragmentFileName) {
     viewMatrixLoc = glGetUniformLocation(p, "viewMatrix");
     rotMatrixLoc = glGetUniformLocation(p, "rotMatrix");
 
+    log_debug("setupShaders }");
     return(p);
 }

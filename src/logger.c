@@ -30,10 +30,8 @@ void _log_message(enum log_mode mode, char *file, int line, char *msg, ...)
 
     switch(mode) {
     case DEBUG:
-        #ifdef _DEBUG
         out = log_debug;
         log_str = LOG_STR_DEBUG;
-        #endif
         break;
     case INFO:
         out = log_info;
@@ -58,7 +56,9 @@ void _log_message(enum log_mode mode, char *file, int line, char *msg, ...)
     int done;
 
     va_start (arg, msg);
-    fprintf(out, "%s %d %s %d: ", log_str, (int)time(NULL), file, line);
+    if (mode != INFO || log_debug != NULL) {
+        fprintf(out, "%s %d %s %d: ", log_str, (int)time(NULL), file, line);
+    }
     done = vfprintf (out, msg, arg);
     fprintf(out, "\n");
     va_end (arg);
