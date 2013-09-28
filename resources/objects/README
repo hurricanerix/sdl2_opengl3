@@ -1,6 +1,8 @@
-http://w3.impa.br/~diego/software/rply/
-triangle.ply
+All PLY objects created using Blender (http://www.blender.org)
 
-http://people.sc.fsu.edu/~jburkardt/data/ply/ply.html
-cube.ply
-tommygun.ply
+Notes on creating a valid PLY for this program:
+1. You must triangulate the faces of your object before exporting to PLY,
+   otherwise it will not be read into OpenGL correctly.
+   You can do this as follows:
+
+   3D View toolbar -> Edit Mode -> Mesh -> Faces -> Triangulate Faces (Ctl T)
