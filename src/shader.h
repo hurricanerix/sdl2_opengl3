@@ -1,7 +1,7 @@
 #ifndef __SHADER_H__
 #define __SHADER_H__
 
-extern GLuint vertexLoc, colorLoc;
+extern GLuint vertexLoc, normalLoc;
 extern GLuint projMatrixLoc, viewMatrixLoc;
 extern GLuint rotMatrixLoc;
 

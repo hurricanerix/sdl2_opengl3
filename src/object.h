@@ -2,7 +2,8 @@
 #define __OBJECT_H__
 
 typedef struct Vertex {
-  float x,y,z;             /* the usual 3-space position of a vertex */
+  float x, y, z;             /* the usual 3-space position of a vertex */
+  float nx, ny, nz;
 } Vertex;
 
 typedef struct Face {

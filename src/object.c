@@ -14,6 +14,9 @@ PlyProperty vert_props[] = { /* list of property information for a vertex */
   {"x", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,x), 0, 0, 0, 0},
   {"y", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,y), 0, 0, 0, 0},
   {"z", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,z), 0, 0, 0, 0},
+  {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,nx), 0, 0, 0, 0},
+  {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,ny), 0, 0, 0, 0},
+  {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,nz), 0, 0, 0, 0},
 };
 PlyProperty face_props[] = { /* list of property information for a vertex */
   {"intensity", PLY_UCHAR, PLY_UCHAR, offsetof(Face,intensity), 0, 0, 0, 0},
@@ -25,10 +28,11 @@ PlyProperty face_props[] = { /* list of property information for a vertex */
 GLuint vao[3];
 
 float *vertices;
+float *normals;
 GLuint *faces;
 GLuint face_count = -1;
 GLuint vertex_count = -1;
-GLuint buffers[2];
+GLuint buffers[3];
 
 void read_object(char *file_name);
 
@@ -48,24 +52,23 @@ void setupBuffers(char *file_name)
     glGenVertexArrays(1, vao);
     glBindVertexArray(vao[0]);
 
+    // bind buffer for vertex and copy data into buffer
     glGenBuffers(1, &buffers[0]);
     glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertex_count, vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, 0, 0, 0);
     glEnableVertexAttribArray(vertexLoc);
+    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, 0, 0, 0);
 
+    // bind buffer for normal and copy data into buffer
     glGenBuffers(1, &buffers[1]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * face_count, faces, GL_STATIC_DRAW);
-
-    // bind buffer for colors and copy data into buffer
-    /*
     glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(colorLoc);
-    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, 0, 0, 0);
-    */
+    glBufferData(GL_ARRAY_BUFFER, sizeof(normals) * vertex_count, normals, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(normalLoc);
+    glVertexAttribPointer(normalLoc, 3, GL_FLOAT, 0, 0, 0);
+
+    glGenBuffers(1, &buffers[2]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * face_count, faces, GL_STATIC_DRAW);
 
     log_debug("setupBuffers }");
 }
@@ -145,6 +148,7 @@ void read_object(char *file_name)
         if (equal_strings ("vertex", elem_name)) {
             vertex_count = num_elems * 3;
             vertices = malloc(sizeof(float) * vertex_count);
+            normals = malloc(sizeof(float) * vertex_count);
 
             // create a vertex list to hold all the vertices 
             vlist = (Vertex **) malloc (sizeof (Vertex *) * num_elems);
@@ -153,19 +157,28 @@ void read_object(char *file_name)
             ply_get_property (ply, elem_name, &vert_props[0]);
             ply_get_property (ply, elem_name, &vert_props[1]);
             ply_get_property (ply, elem_name, &vert_props[2]);
+            ply_get_property (ply, elem_name, &vert_props[3]);
+            ply_get_property (ply, elem_name, &vert_props[4]);
+            ply_get_property (ply, elem_name, &vert_props[5]);
 
             // grab all the vertex elements 
             for (j = 0; j < num_elems; j++) {
                 // grab and element from the file 
                 vlist[j] = (Vertex *) malloc (sizeof (Vertex));
+                assert(vlist[j] != NULL);
                 ply_get_element (ply, (void *) vlist[j]);
 
                 // print out vertex x,y,z for debugging 
                 //log_info("Vertex: %g %g %g", vlist[j]->x, vlist[j]->y, vlist[j]->z);
+                log_info("Normals: %g %g %g", vlist[j]->nx, vlist[j]->ny, vlist[j]->nz);
                 int base = j * 3;
                 vertices[base] = vlist[j]->x;
                 vertices[base + 1] = vlist[j]->y;
                 vertices[base + 2] = vlist[j]->z;
+
+                normals[base] = vlist[j]->nx;
+                normals[base + 1] = vlist[j]->ny;
+                normals[base + 2] = vlist[j]->nz;
             }
         }
 

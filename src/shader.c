@@ -8,7 +8,7 @@
 #include "text.h"
 
 
-GLuint vertexLoc, colorLoc;
+GLuint vertexLoc, normalLoc;
 GLuint projMatrixLoc, viewMatrixLoc;
 GLuint rotMatrixLoc;
 
@@ -121,7 +121,7 @@ GLuint setupShaders(char *vertexFileName, char *fragmentFileName)
     printProgramInfoLog(p);
 
     vertexLoc = glGetAttribLocation(p,"MCvertex");
-    colorLoc = glGetAttribLocation(p, "MCnormal"); 
+    normalLoc = glGetAttribLocation(p, "MCnormal"); 
 
     projMatrixLoc = glGetUniformLocation(p, "MVPMatrix");
     viewMatrixLoc = glGetUniformLocation(p, "MVMatrix");
