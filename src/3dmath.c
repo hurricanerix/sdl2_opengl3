@@ -118,6 +118,14 @@ void setIdentityMatrix(float *mat, int size)
     log_debug("setIdentityMatrix }");
 }
 
+// a = b;
+void copy_matrix(float *a, float *b)
+{
+    for (int i = 0; i < 16; i++) {
+        a[i] = b[i];
+    }
+}
+
 //
 // a = a * b;
 //

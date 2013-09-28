@@ -1,17 +1,13 @@
 #version 150
  
-uniform mat4 viewMatrix;
-uniform mat4 projMatrix;
-uniform mat3 rotMatrix;
+uniform mat4 MVMatrix;
+uniform mat4 MVPMatrix;
+uniform mat3 RotMatrix;
  
-in vec4 position;
-//in vec3 color;
- 
-out vec3 Color;
+in vec4 MCvertex;
+in vec3 MCnormal;
  
 void main()
 {
-    Color = vec3(0.0, 1.0, 0.0); //color;
-    vec3 p = vec3(position.xyz) * rotMatrix;
-    gl_Position = projMatrix * viewMatrix * vec4(p, 1.0);
+    gl_Position = MVPMatrix * vec4(vec3(MCvertex.xyz) * RotMatrix, 1.0);
 }

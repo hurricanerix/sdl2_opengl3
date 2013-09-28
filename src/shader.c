@@ -116,16 +116,16 @@ GLuint setupShaders(char *vertexFileName, char *fragmentFileName)
     glAttachShader(p,v);
     glAttachShader(p,f);
 
-    glBindFragDataLocation(p, 0, "outputF");
+    glBindFragDataLocation(p, 0, "FracColor");
     glLinkProgram(p);
     printProgramInfoLog(p);
 
-    vertexLoc = glGetAttribLocation(p,"position");
-    colorLoc = glGetAttribLocation(p, "color"); 
+    vertexLoc = glGetAttribLocation(p,"MCvertex");
+    colorLoc = glGetAttribLocation(p, "MCnormal"); 
 
-    projMatrixLoc = glGetUniformLocation(p, "projMatrix");
-    viewMatrixLoc = glGetUniformLocation(p, "viewMatrix");
-    rotMatrixLoc = glGetUniformLocation(p, "rotMatrix");
+    projMatrixLoc = glGetUniformLocation(p, "MVPMatrix");
+    viewMatrixLoc = glGetUniformLocation(p, "MVMatrix");
+    rotMatrixLoc = glGetUniformLocation(p, "RotMatrix");
 
     log_debug("setupShaders }");
     return(p);

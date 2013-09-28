@@ -14,12 +14,14 @@
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
-float rotMatrix[9];
+
 char *vertexFileName = "resources/shaders/basic.vert";
 char *fragmentFileName = "resources/shaders/basic.frag";
 GLuint p,v,f;
 float projMatrix[16];
 float viewMatrix[16];
+float mvpMatrix[16];
+float rotMatrix[9];
 
 void render_scene();
 void process_keys(unsigned char key, int x, int y);
@@ -150,6 +152,8 @@ int main(int argc, char *argv[])
 void render_scene()
 {
     log_debug("render_scene {");
+    copy_matrix(mvpMatrix, projMatrix);
+    multMatrix(mvpMatrix, viewMatrix);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     static float x, y, z;
@@ -193,7 +197,7 @@ void set_uniforms()
     log_debug("set_uniforms {");
 
     // must be called after glUseProgram
-    glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, projMatrix);
+    glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, mvpMatrix);
     glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, viewMatrix);
     glUniformMatrix3fv(rotMatrixLoc,  1, GL_FALSE, rotMatrix);
 
@@ -218,6 +222,8 @@ void change_size(int w, int h)
 
     ratio = (1.0f * w) / h;
     buildProjectionMatrix(projMatrix, 53.13f, ratio, 1.0f, 30.0f);
+
+
 
     log_debug("change_size }");
 }

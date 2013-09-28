@@ -3,6 +3,7 @@
 
 void get_rot_matrix(float *m, float x, float y, float z);
 
+void copy_matrix(float *a, float *b);
 void crossProduct( float *a, float *b, float *res);
 void normalize(float *a);
 void setIdentityMatrix( float *mat, int size);
