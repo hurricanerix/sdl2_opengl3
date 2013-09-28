@@ -170,7 +170,7 @@ void read_object(char *file_name)
 
                 // print out vertex x,y,z for debugging 
                 //log_info("Vertex: %g %g %g", vlist[j]->x, vlist[j]->y, vlist[j]->z);
-                log_info("Normals: %g %g %g", vlist[j]->nx, vlist[j]->ny, vlist[j]->nz);
+                //log_info("Normals: %g %g %g", vlist[j]->nx, vlist[j]->ny, vlist[j]->nz);
                 int base = j * 3;
                 vertices[base] = vlist[j]->x;
                 vertices[base + 1] = vlist[j]->y;

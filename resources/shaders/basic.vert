@@ -13,7 +13,8 @@ const float  DiffuseContribution = 1.0 - SpecularContribution;
 
 out float    LightIntensity;
 
-mat3 getNormalMatrix() 
+// TODO: calculate this and pass it in.
+mat3 getNormalMatrix()
 {
     mat3 nm = mat3x3(MVMatrix);
     nm = inverse(nm);
