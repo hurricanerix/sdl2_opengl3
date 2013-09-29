@@ -1,21 +1,11 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "main.h"
 
-#define GL3_PROTOTYPES 1
-#ifdef __APPLE__
-#include <OpenGL/gl3.h>
-#else
-#include <GL/gl3.h>
-#endif
-
-#include <SDL2/SDL.h>
-
-#include "logger.h"
 #include "3dmath.h"
-#include "text.h"
-#include "shader.h"
+#include "logger.h"
 #include "object.h"
+#include "shader.h"
+#include "text.h"
+
 
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;

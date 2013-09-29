@@ -1,6 +1,11 @@
 #ifndef __3D_MATH_H__
 #define __3D_MATH_H__
 
+#include <assert.h>
+#include <math.h>
+#include <memory.h>
+#include <stdio.h>
+
 void get_rot_matrix(float *m, float x, float y, float z);
 
 void copy_matrix(float *a, float *b);
@@ -13,4 +18,4 @@ void buildProjectionMatrix(float *projMatrix, float fov, float ratio, float near
 void setCamera(float *viewMatrix, float posX, float posY, float posZ,
                float lookAtX, float lookAtY, float lookAtZ);
 
-#endif //__3D_MATH_H__
+#endif//__3D_MATH_H__

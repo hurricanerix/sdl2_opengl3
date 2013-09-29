@@ -1,10 +1,6 @@
-#include <assert.h>
-#include <math.h>
-#include <memory.h>
-#include <stdio.h>
+#include "3dmath.h"
 
 #include "logger.h"
-#include "3dmath.h"
 
 
 void log_matrix(float *mat, int rowc, int colc)

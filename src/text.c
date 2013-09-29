@@ -1,9 +1,7 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "text.h"
 
 #include "logger.h"
-#include "text.h"
+
 
 char *textFileRead(char *fn)
 {

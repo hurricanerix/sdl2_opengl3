@@ -1,8 +1,13 @@
 #ifndef __PLY_H__
 #define __PLY_H__
 
-#include <stdio.h>
+#include <assert.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
 
 #define PLY_ASCII      1        /* ascii PLY file */
 #define PLY_BINARY_BE  2        /* binary PLY file, big endian */

@@ -1,6 +1,16 @@
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
 
+#include <assert.h>
+#include <stdio.h> 
+#include <stdlib.h>
+#include <math.h>
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#else
+#include <GL/gl3.h>
+#endif
+
 typedef struct Vertex {
   float x, y, z;             /* the usual 3-space position of a vertex */
   float nx, ny, nz;

@@ -1,17 +1,8 @@
-#include <assert.h>
-#include <stdio.h> 
-#include <stdlib.h>
-#include <math.h>
-#ifdef __APPLE__
-#include <OpenGL/gl3.h>
-#else
-#include <GL/gl3.h>
-#endif
+#include "object.h"
 
 #include "logger.h"
-#include "shader.h"
-#include "object.h"
 #include "plyfile.h"
+#include "shader.h"
 
 
 PlyProperty vert_props[] = { /* list of property information for a vertex */

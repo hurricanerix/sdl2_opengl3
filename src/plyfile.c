@@ -1,11 +1,7 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
+#include "plyfile.h"
 
 #include "logger.h"
-#include "plyfile.h"
+
 
 char *type_names[] = {
 "invalid",
