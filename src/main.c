@@ -168,7 +168,8 @@ void render_scene()
 
     get_rot_matrix(rotMatrix, x, y, z);
 
-    setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
+    //setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
+    setCamera(viewMatrix, 5, 5, 0, 0, 0, 0);
     glUseProgram(p);
     set_uniforms();
 
