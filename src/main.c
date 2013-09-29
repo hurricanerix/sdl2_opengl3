@@ -3,7 +3,12 @@
 #include <stdlib.h>
 
 #define GL3_PROTOTYPES 1
+#ifdef __APPLE__
 #include <OpenGL/gl3.h>
+#else
+#include <GL/gl3.h>
+#endif
+
 #include <SDL2/SDL.h>
 
 #include "logger.h"

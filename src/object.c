@@ -2,7 +2,11 @@
 #include <stdio.h> 
 #include <stdlib.h>
 #include <math.h>
+#ifdef __APPLE__
 #include <OpenGL/gl3.h>
+#else
+#include <GL/gl3.h>
+#endif
 
 #include "logger.h"
 #include "shader.h"
