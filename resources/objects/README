@@ -1,8 +1,0 @@
-All PLY objects created using Blender (http://www.blender.org)
-
-Notes on creating a valid PLY for this program:
-1. You must triangulate the faces of your object before exporting to PLY,
-   otherwise it will not be read into OpenGL correctly.
-   You can do this as follows:
-
-   3D View toolbar -> Edit Mode -> Mesh -> Faces -> Triangulate Faces (Ctl T)
