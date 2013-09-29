@@ -21,7 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "main.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#ifndef GL3_PROTOTYPES
+#define GL3_PROTOTYPES 1
+#endif
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#else
+#include <GL/gl3.h>
+#endif
+#include <SDL2/SDL.h>
 
 #include "3dmath.h"
 #include "config.h"
@@ -29,6 +40,7 @@
 #include "object.h"
 #include "shader.h"
 #include "text.h"
+#include "main.h"
 
 
 SDL_Window* display_window;
@@ -153,7 +165,7 @@ int main(int argc, char *argv[])
     {
         SDL_PollEvent(&event);
 
-        render_scene();
+        render_scene(config);
 
         switch (event.type)
         {
@@ -171,7 +183,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void render_scene()
+void render_scene(Config *config)
 {
     log_debug("render_scene {");
     copy_matrix(mvpMatrix, projMatrix);
@@ -188,7 +200,7 @@ void render_scene()
     //setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
     setCamera(viewMatrix, 5, 5, 0, 0, 0, 0);
     glUseProgram(p);
-    set_uniforms();
+    set_uniforms(config);
 
     render_object();
 
@@ -225,7 +237,7 @@ void process_keys(unsigned char key, int x, int y)
     log_debug("process_keys {");
 }
 
-void set_uniforms()
+void set_uniforms(Config *config)
 {
     log_debug("set_uniforms {");
 
@@ -233,6 +245,15 @@ void set_uniforms()
     glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, mvpMatrix);
     glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, viewMatrix);
     glUniformMatrix3fv(rotMatrixLoc,  1, GL_FALSE, rotMatrix);
+
+    for (int i = 0; i < config->vert_uniform_count; i++) {
+        set_uniform(p, &(config->vert_uniforms[i]));
+    }
+
+    for (int i = 0; i < config->frag_uniform_count; i++) {
+        set_uniform(p, &(config->frag_uniforms[i]));
+    }
+
 
     log_debug("set_uniforms }");
 }

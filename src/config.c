@@ -21,27 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "config.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+#include "config.h"
 #include "logger.h"
 #include "main.h"
 #include "text.h"
 
 
-const int max_line_len = 1024;
 enum ConfigSections {
-    UNKNOWN_SECTION, APP_SECTION, OBJECT_SECTION
-};
+    UNKNOWN_SECTION, APP_SECTION, OBJECT_SECTION, VERT_SECTION, FRAG_SECTION};
+
 #define SECTION_START_TOKEN ('[')
 #define SECTION_END_TOKEN (']')
 #define COMMENT_TOKEN (';')
 #define KEY_VALUE_DELIMITER ('=')
 #define SPACE_TOKEN (' ')
 #define EMPTY_LINE_TOKEN ('\0')
-
-#define CUBE_FILE ("resources/objects/cube.ply\0")
-#define VERT_FILE ("resources/shaders/basic.vert\0")
-#define FRAG_FILE ("resources/shaders/basic.frag\0")
 
 
 Config *get_config(char *filename)
@@ -62,15 +61,18 @@ Config *get_config(char *filename)
     config->object->vert_shader_file = NULL;
     config->object->frag_shader_file = NULL;
 
+    config->vert_uniform_count = 0;
+    config->frag_uniform_count = 0;
+
     int ini_size;
     char *ini_data = text_file_read(filename, &ini_size);
     assert(ini_data != NULL);
 
-    char buffer[max_line_len];
+    char buffer[MAX_LINE_LEN];
     enum ConfigSections current_section = UNKNOWN_SECTION;
     char *key;
     char *value;
-    while (get_next_line(ini_data, ini_size, buffer, max_line_len) == TRUE) {
+    while (get_next_line(ini_data, ini_size, buffer, MAX_LINE_LEN) == TRUE) {
         switch(buffer[0]) {
         case COMMENT_TOKEN:
         case EMPTY_LINE_TOKEN:
@@ -88,11 +90,19 @@ Config *get_config(char *filename)
             if (strncmp(value, "object", sizeof("object")) == 0) {
                 current_section = OBJECT_SECTION;
             }
+            if (strncmp(value, "vert_shader", sizeof("vert_shader")) == 0) {
+                current_section = VERT_SECTION;
+            }
+            if (strncmp(value, "frag_shader", sizeof("frag_shader")) == 0) {
+                current_section = FRAG_SECTION;
+            }
 
             break;
         default:
             if (current_section != APP_SECTION &&
-                    current_section != OBJECT_SECTION) {
+                    current_section != OBJECT_SECTION &&
+                    current_section != VERT_SECTION &&
+                    current_section != FRAG_SECTION) {
                 continue;
             }
 
@@ -104,23 +114,94 @@ Config *get_config(char *filename)
 
             if (current_section == APP_SECTION) {
                 if (strncmp(key, "object_file", sizeof("object_file")) == 0) {
-                    config->app->object_file = malloc(max_line_len);
+                    config->app->object_file = malloc(MAX_LINE_LEN);
                     assert(config->app->object_file != NULL);
-                    strncpy(config->app->object_file, value, max_line_len);
+                    strncpy(config->app->object_file, value, MAX_LINE_LEN);
                 }
             }
 
             if (current_section == OBJECT_SECTION) {
                 if (strncmp(key, "vert_shader_file", sizeof("vert_shader_file")) == 0) {
-                    config->object->vert_shader_file = malloc(max_line_len);
+                    config->object->vert_shader_file = malloc(MAX_LINE_LEN);
                     assert(config->object->vert_shader_file != NULL);
-                    strncpy(config->object->vert_shader_file, value, max_line_len);
+                    strncpy(config->object->vert_shader_file, value, MAX_LINE_LEN);
                 }
                 else if (strncmp(key, "frag_shader_file", sizeof("frag_shader_file")) == 0) {
-                    config->object->frag_shader_file = malloc(max_line_len);
+                    config->object->frag_shader_file = malloc(MAX_LINE_LEN);
                     assert(config->object->frag_shader_file != NULL);
-                    strncpy(config->object->frag_shader_file, value, max_line_len);
+                    strncpy(config->object->frag_shader_file, value, MAX_LINE_LEN);
                 }
+            }
+
+            if (current_section == VERT_SECTION || current_section == FRAG_SECTION) {
+                char *type;
+                enum UniformDataTypes etype;
+                char *name;
+                type = strtok(key, " ");
+                name = strtok(NULL, "=");
+                int i = 0;
+                char *p;
+                float x = 0.0;
+                float y = 0.0;
+                float z = 0.0;
+                float w = 0.0;
+
+                if (strncmp(type, "int", sizeof("int")) == 0) {
+                    etype = UNIFORM_INT;
+                    i = atoi(value);
+                }
+
+                if (strncmp(type, "float", sizeof("float")) == 0) {
+                    etype = UNIFORM_FLOAT;
+                    x = atof(value);
+                }
+                if (strncmp(type, "vec2", sizeof("vec2")) == 0) {
+                    etype = UNIFORM_VEC2;
+                    p = strtok(value, ",");
+                    x = atof(p);
+                    p = strtok(NULL, "\0");
+                    y = atof(p);;
+                }
+                if (strncmp(type, "vec3", sizeof("vec3")) == 0) {
+                    etype = UNIFORM_VEC3;
+                    p = strtok(value, ",");
+                    x = atof(p);
+                    p = strtok(NULL, ",");
+                    y = atof(p);;
+                    p = strtok(NULL, "\0");
+                    z = atof(p);;
+                }
+
+                if (strncmp(type, "vec4", sizeof("vec4")) == 0) {
+                    etype = UNIFORM_VEC4;
+                    p = strtok(value, ",");
+                    x = atof(p);
+                    p = strtok(NULL, ",");
+                    y = atof(p);;
+                    p = strtok(NULL, ",");
+                    z = atof(p);;
+                    p = strtok(NULL, "\0");
+                    w = atof(p);;
+                }
+
+                UniformConfig *uconfig;
+                if (current_section == VERT_SECTION) {
+                    assert(config->vert_uniform_count + 1 != MAX_UNIFORM_COUNT);
+                    uconfig = &(config->vert_uniforms[config->vert_uniform_count]);
+                    config->vert_uniform_count++;
+                } else {
+                    assert(config->frag_uniform_count + 1 != MAX_UNIFORM_COUNT);
+                    uconfig = &(config->frag_uniforms[config->frag_uniform_count]);
+                    config->frag_uniform_count++;
+                }
+
+                uconfig->type = etype;
+                strncpy(uconfig->name, name, MAX_LINE_LEN);
+                uconfig->i = i;
+                uconfig->x = x;
+                uconfig->y = y;
+                uconfig->z = z;
+                uconfig->w = w;
             }
         }
     }
@@ -141,6 +222,14 @@ void log_config(Config *config)
     log_app_config(config->app);
     log_debug("  object - %x", config->object);
     log_object_config(config->object);
+    log_info("vert_uniform_count: %d", config->vert_uniform_count);
+    for (int i = 0; i < config->vert_uniform_count; i++) {
+        log_uniform_config(&(config->vert_uniforms[i]));
+    }
+    log_info("frag_uniform_count: %d", config->frag_uniform_count);
+    for (int i = 0; i < config->frag_uniform_count; i++) {
+        log_uniform_config(&(config->frag_uniforms[i]));
+    }
 
     log_debug("log_config }");
 }
@@ -168,6 +257,45 @@ void log_object_config(ObjectConfig *config)
     log_info("  frag_shader_file - %s", config->frag_shader_file);
 
     log_debug("log_object_config }");
+}
+
+void log_uniform_config(UniformConfig *config)
+{
+    assert(config != NULL);
+    log_debug("log_uniform_config {");
+    log_debug("  -in- config - %x", config);
+
+    log_info("UniformConfig:");
+    log_info("  type - %d", config->type);
+    log_info("  name - %s", config->name);
+    switch(config->type) {
+    case UNIFORM_INT:
+        log_info("  i - %d", config->i);
+        break;
+    case UNIFORM_FLOAT:
+        log_info("  x - %f", config->x);
+        break;
+    case UNIFORM_VEC2:
+        log_info("  x - %f", config->x);
+        log_info("  y - %f", config->y);
+        break;
+    case UNIFORM_VEC3:
+        log_info("  x - %f", config->x);
+        log_info("  y - %f", config->y);
+        log_info("  z - %f", config->z);
+        break;
+    case UNIFORM_VEC4:
+        log_info("  x - %f", config->x);
+        log_info("  y - %f", config->y);
+        log_info("  z - %f", config->z);
+        log_info("  w - %f", config->w);
+        break;
+    default:
+        log_info("  UNKNOWN DATA TYPE");
+        break;
+    }
+
+    log_debug("log_uniform_config }");
 }
 
 void destroy_config(Config *config)

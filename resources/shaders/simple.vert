@@ -12,8 +12,8 @@ uniform mat3 RotMatrix;
 
 const vec3   LightPosition = vec3(2.0, 2.0, 2.0);
 
-const float  SpecularContribution = 0.3;
-const float  DiffuseContribution = 1.0 - SpecularContribution;
+uniform float  SpecularContribution;
+float  DiffuseContribution = 1.0 - SpecularContribution;
 
 out float    LightIntensity;
 out vec2     MCposition;

@@ -21,16 +21,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "shader.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#else
+#include <GL/gl3.h>
+#endif
 
+#include "config.h"
 #include "logger.h"
 #include "text.h"
+#include "shader.h"
 
 
 GLuint vertexLoc, normalLoc;
 GLuint projMatrixLoc, viewMatrixLoc;
 GLuint rotMatrixLoc;
 
+
+void set_uniform(int program, UniformConfig *config)
+{
+    assert(config != NULL);
+    log_debug("set_uniform {");
+    log_debug("  -in- config - %x", config);
+
+    GLuint loc = glGetUniformLocation(program, config->name);
+    switch(config->type) {
+    case UNIFORM_INT:
+        glUniform1i(loc, config->i);
+        break;
+    case UNIFORM_FLOAT:
+        glUniform1f(loc, config->x);
+        break;
+    case UNIFORM_VEC2:
+        glUniform2f(loc, config->x, config->y);
+        break;
+    case UNIFORM_VEC3:
+        glUniform3f(loc, config->x, config->y, config->z);
+        break;
+    case UNIFORM_VEC4:
+        glUniform4f(loc, config->x, config->y, config->z, config->w);
+        break;
+    default:
+        break;
+    }
+
+    log_debug("set_uniform }");
+}
 
 int printOglError(char *file, int line)
 {

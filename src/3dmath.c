@@ -21,8 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "3dmath.h"
+#include <assert.h>
+#include <math.h>
+#include <memory.h>
+#include <stdio.h>
 
+#include "3dmath.h"
 #include "logger.h"
 
 

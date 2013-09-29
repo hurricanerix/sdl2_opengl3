@@ -23,12 +23,13 @@
  */
 #version 150
  
-out vec4 FracColor;
-
 in float LightIntensity;
+
+uniform vec3 Color;
+
+out vec4 FracColor;
 
 void main()
 {
-    vec3 color = vec3(1.0, 0.0, 0.0) * LightIntensity;
-    FracColor = vec4(color, 1.0);
+    FracColor = vec4(Color * LightIntensity, 1.0);
 }

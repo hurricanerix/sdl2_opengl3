@@ -24,9 +24,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#define MAX_LINE_LEN (1024)
+#define MAX_UNIFORM_COUNT (10)
 
 typedef struct AppConfig {
     char *object_file;
@@ -37,15 +36,34 @@ typedef struct ObjectConfig {
     char *frag_shader_file;
 } ObjectConfig;
 
+enum UniformDataTypes {
+    UNIFORM_UNKNOWN, UNIFORM_INT, UNIFORM_FLOAT,
+    UNIFORM_VEC2, UNIFORM_VEC3, UNIFORM_VEC4};
+
+typedef struct UniformConfig {
+    enum UniformDataTypes type;
+    char name[MAX_LINE_LEN];
+    int i;
+    float x;
+    float y;
+    float z;
+    float w;
+} UniformConfig;
+
 typedef struct Config {
     AppConfig *app;
     ObjectConfig *object;
+    int vert_uniform_count;
+    UniformConfig vert_uniforms[MAX_UNIFORM_COUNT];
+    int frag_uniform_count;
+    UniformConfig frag_uniforms[MAX_UNIFORM_COUNT];
 } Config;
 
 Config *get_config(char *filename);
 void log_config(Config *config);
 void log_app_config(AppConfig *config);
 void log_object_config(ObjectConfig *config);
+void log_uniform_config(UniformConfig *config);
 void destroy_config(Config *config);
 
 #endif//__CONFIG_H__

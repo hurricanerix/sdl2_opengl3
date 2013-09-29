@@ -24,11 +24,6 @@
 #ifndef __TEXT_H__
 #define __TEXT_H__
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 char *text_file_read(char *filename, int *size);
 int get_next_line(char *data, int data_size, char *buffer, int buffer_size);
 

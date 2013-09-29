@@ -26,13 +26,13 @@
 uniform mat4 MVMatrix;
 uniform mat4 MVPMatrix;
 uniform mat3 RotMatrix;
+uniform float  SpecularContribution;
  
 in vec4      MCvertex;
 in vec3      MCnormal;
 
 const vec3   LightPosition = vec3(2.0, 2.0, 2.0);
-const float  SpecularContribution = 0.3;
-const float  DiffuseContribution = 1.0 - SpecularContribution;
+float  DiffuseContribution = 1.0 - SpecularContribution;
 
 out float    LightIntensity;
 

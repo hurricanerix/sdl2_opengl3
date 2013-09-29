@@ -24,10 +24,6 @@
 #ifndef __LOGGER_H__
 #define __LOGGER_H__
 
-#include <stdio.h>
-#include <time.h>
-#include <stdarg.h>
-
 enum log_mode {DEBUG, INFO, WARNING, ERROR};
 
 void init_logger(FILE *debug, FILE *info, FILE *warning, FILE *error);
