@@ -5,13 +5,14 @@ addition it should also be useful for experimenting with shader development.
 
 ![Alt text](https://github.com/hurricanerix/sdl2_opengl3/raw/master/resources/screenshot.png "Screenshot")
 
-Credit:
+
+Credits
+-------
 Original OpenGL 3 Code:
 http://www.lighthouse3d.com/cg-topics/code-samples/opengl-3-3-glsl-1-5-sample/
 
-PLY reading code from:
+Original PLY Code:
 http://w3.impa.br/~diego/software/rply/
 
-PLY object files:
-http://people.sc.fsu.edu/~jburkardt/data/ply/ply.html
-
+PLY Objects created using blender:
+http://www.blender.org

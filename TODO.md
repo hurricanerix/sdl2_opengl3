@@ -1,11 +1,18 @@
 TODO
 ====
 * Clean up code. (add asserts)
-* Pass in config with information on what shaders to load.
-* Pass in object file with information on rendering the object.
+* Create texture map example.
+* Update Makefile to compile on Linux & Windows in addition to OSX.
+* Allow toggeling between user input and automatic for object rotation.
+* Pass in a scene file with information on what object to render.
+* Modify scene file with information on what shaders to use when rendering.
+* Modify scene file with information on what shaders to use when rendering.
+* Modify scene file to accept arbitrary uniform values to be passed to shaders.
+* Modify scene file with general information (background color, camera pos...)
 
 Completed
 =========
+* Create lighting example.
 * Move 3dmath code to its own module.
 * Move file reading code to its own module.
 * Move shader code to its own module.
