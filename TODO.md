@@ -1,6 +1,7 @@
 TODO
 ====
 * Clean up code. (add asserts)
+* Calculate Normal Matrix in application and pass in to vertex shader.
 * Create texture map example.
 * Update Makefile to compile on Linux & Windows in addition to OSX.
 * Allow toggeling between user input and automatic for object rotation.
