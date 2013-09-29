@@ -24,7 +24,7 @@ CC=gcc -std=gnu99
 CFLAGS=-g -Wall -Werror -O3 -c -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE -D_DEBUG
 LDFLAGS=-L/usr/local/lib -lSDLmain -lSDL2 -Wl,-framework,Cocoa -framework GLUT -framework OpenGL
 EXECUTABLE=demo
-SOURCES=main.c 3dmath.c shader.c text.c object.c plyfile.c logger.c
+SOURCES=main.c 3dmath.c shader.c text.c object.c plyfile.c logger.c config.c
 HEADERS=$(SOURCES:%.c=%.h)
 OBJECTS=$(EXECUTABLES:%.c=%.o) $(SOURCES:%.c=%.o) 
 

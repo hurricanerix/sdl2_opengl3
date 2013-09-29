@@ -24,13 +24,15 @@
 #include "text.h"
 
 #include "logger.h"
+#include "main.h"
 
 
-char *textFileRead(char *fn)
+char *text_file_read(char *fn, int *size)
 {
     assert(fn != NULL);
-    log_debug("textFileRead {");
+    log_debug("text_file_read {");
     log_debug("  -in- fn - %s", fn);
+    log_debug("  -in- size - %x", size);
 
     FILE *fp;
     char *content = NULL;
@@ -44,17 +46,31 @@ char *textFileRead(char *fn)
 
       fseek(fp, 0, SEEK_END);
       count = ftell(fp);
+      *size = count + 1;
       rewind(fp);
 
             if (count > 0) {
-                content = (char *)malloc(sizeof(char) * (count+1));
-                count = fread(content,sizeof(char),count,fp);
-                content[count] = '\0';
+                content = (char *)malloc(sizeof(char) * (*size));
+                *size = fread(content,sizeof(char), *size, fp);
+                content[*size] = '\0';
             }
             fclose(fp);
         }
     }
 
-    log_debug("textFileRead }");
+    log_debug("text_file_read }");
+    log_debug("  -out- size - %d", *size);
     return content;
+}
+
+int get_next_line(char *buffer, int buffer_size)
+{
+    int result = FALSE;
+    log_debug("get_next_line {");
+    log_debug("  -in- buffer - %x", buffer);
+    log_debug("  -in- buffer_size - %d", buffer_size);
+
+    log_debug("get_next_line }");
+    log_debug("  -out- result - %d", result);
+    return result;
 }

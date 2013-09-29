@@ -35,4 +35,7 @@
 #endif
 #include <SDL2/SDL.h>
 
+#define TRUE (1)
+#define FALSE (0)
+
 #endif//__MIAN_H__

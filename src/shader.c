@@ -114,8 +114,10 @@ GLuint setupShaders(char *vertexFileName, char *fragmentFileName)
     v = glCreateShader(GL_VERTEX_SHADER);
     f = glCreateShader(GL_FRAGMENT_SHADER);
 
-    vs = textFileRead(vertexFileName);
-    fs = textFileRead(fragmentFileName);
+    int vs_size;
+    vs = text_file_read(vertexFileName, &vs_size);
+    int fs_size;
+    fs = text_file_read(fragmentFileName, &fs_size);
 
     const char * vv = vs;
     const char * ff = fs;

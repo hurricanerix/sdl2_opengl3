@@ -24,6 +24,7 @@
 #include "main.h"
 
 #include "3dmath.h"
+#include "config.h"
 #include "logger.h"
 #include "object.h"
 #include "shader.h"
@@ -33,8 +34,6 @@
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
 
-char *vertexFileName = "resources/shaders/basic.vert";
-char *fragmentFileName = "resources/shaders/basic.frag";
 GLuint p,v,f;
 float projMatrix[16];
 float viewMatrix[16];
@@ -42,6 +41,7 @@ float mvpMatrix[16];
 float rotMatrix[9];
 
 void render_scene();
+void cleanup(Config *config);
 void process_keys(unsigned char key, int x, int y);
 void set_uniforms();
 void change_size(int w, int h);
@@ -53,7 +53,7 @@ void print_help(char *command)
     log_debug("  -in- command - %s", command);
 
     fprintf(stderr, "%s help:\n", command);
-    fprintf(stderr, "%s <ply file>\n\n", command);
+    fprintf(stderr, "%s <config file>\n\n", command);
 
     log_debug("print_help }");
 }
@@ -107,7 +107,8 @@ int main(int argc, char *argv[])
         log_debug("  -in- argv[%d] - %s", i, argv[i]);
     }
 
-    char *ply_file = argv[1];
+    Config *config = get_config(argv[1]);
+    log_config(config);
 
     log_info("Initializing SDL...");
     SDL_Init(SDL_INIT_VIDEO);
@@ -141,8 +142,10 @@ int main(int argc, char *argv[])
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2,0.2,0.2,1.0);
 
-    p = setupShaders(vertexFileName, fragmentFileName);
-    setupBuffers(ply_file);
+    //p = setupShaders(vertexFileName, fragmentFileName);
+    p = setupShaders(config->object->vert_shader_file,
+        config->object->frag_shader_file);
+    setupBuffers(config->app->object_file);
 
     SDL_Event event;
 
@@ -155,6 +158,7 @@ int main(int argc, char *argv[])
         switch (event.type)
         {
         case SDL_QUIT:
+            cleanup(config);
             log_debug("main }");
             return 0;
         default:
@@ -191,6 +195,16 @@ void render_scene()
     SDL_GL_SwapWindow(display_window);
 
     log_debug("render_scene }");
+}
+
+void cleanup(Config *config)
+{
+    log_debug("cleanup {");
+    log_debug("  -in- config - %x", config);
+
+    destroy_config(config);
+
+    log_debug("cleanup }");
 }
 
 void process_keys(unsigned char key, int x, int y)

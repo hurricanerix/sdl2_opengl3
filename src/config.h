@@ -21,14 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef __TEXT_H__
-#define __TEXT_H__
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-char *text_file_read(char *fn, int *size);
-int get_next_line(char *buffer, int buffer_size);
 
-#endif//__TEXT_H__
+typedef struct AppConfig {
+    char *object_file;
+} AppConfig;
+
+typedef struct ObjectConfig {
+    char *vert_shader_file;
+    char *frag_shader_file;
+} ObjectConfig;
+
+typedef struct Config {
+    AppConfig *app;
+    ObjectConfig *object;
+} Config;
+
+Config *get_config(char *filename);
+void log_config(Config *config);
+void log_app_config(AppConfig *config);
+void log_object_config(ObjectConfig *config);
+void destroy_config(Config *config);
+
+#endif//__CONFIG_H__
