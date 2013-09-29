@@ -1,7 +1,6 @@
 TODO
 ====
 * Clean up code. (add asserts)
-* Have get_config actually read in config settings from file.
 * Calculate Normal Matrix in application and pass in to vertex shader.
 * Create texture map example.
 * Update Makefile to compile on Linux & Windows in addition to OSX.
@@ -14,6 +13,7 @@ TODO
 
 Completed
 =========
+* Have get_config actually read in config settings from file.
 * Create lighting example.
 * Move 3dmath code to its own module.
 * Move file reading code to its own module.

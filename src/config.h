@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 typedef struct AppConfig {
     char *object_file;
 } AppConfig;

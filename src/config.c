@@ -29,6 +29,15 @@
 
 
 const int max_line_len = 1024;
+enum ConfigSections {
+    UNKNOWN_SECTION, APP_SECTION, OBJECT_SECTION
+};
+#define SECTION_START_TOKEN ('[')
+#define SECTION_END_TOKEN (']')
+#define COMMENT_TOKEN (';')
+#define KEY_VALUE_DELIMITER ('=')
+#define SPACE_TOKEN (' ')
+#define EMPTY_LINE_TOKEN ('\0')
 
 #define CUBE_FILE ("resources/objects/cube.ply\0")
 #define VERT_FILE ("resources/shaders/basic.vert\0")
@@ -46,36 +55,80 @@ Config *get_config(char *filename)
 
     config->app = malloc(sizeof(AppConfig));
     assert(config->app != NULL);
-
-    config->app->object_file = malloc(sizeof(CUBE_FILE));
-    assert(config->app->object_file != NULL);
-    strncpy(config->app->object_file, CUBE_FILE, sizeof(CUBE_FILE));
+    config->app->object_file = NULL;
 
     config->object = malloc(sizeof(ObjectConfig));
     assert(config->object != NULL);
+    config->object->vert_shader_file = NULL;
+    config->object->frag_shader_file = NULL;
 
-    config->object->vert_shader_file = malloc(sizeof(VERT_FILE));
-    assert(config->object->vert_shader_file != NULL);
-    strncpy(config->object->vert_shader_file, VERT_FILE, sizeof(VERT_FILE));
-
-    config->object->frag_shader_file = malloc(sizeof(FRAG_FILE));
-    assert(config->object->frag_shader_file != NULL);
-    strncpy(config->object->frag_shader_file, FRAG_FILE, sizeof(FRAG_FILE));
-
-    /*int ini_size;
+    int ini_size;
     char *ini_data = text_file_read(filename, &ini_size);
     assert(ini_data != NULL);
 
     char buffer[max_line_len];
-    while (get_next_line(buffer, max_line_len) == TRUE) {
-        printf("TEST: %s\n", ini_data);
-    }*/
+    enum ConfigSections current_section = UNKNOWN_SECTION;
+    char *key;
+    char *value;
+    while (get_next_line(ini_data, ini_size, buffer, max_line_len) == TRUE) {
+        switch(buffer[0]) {
+        case COMMENT_TOKEN:
+        case EMPTY_LINE_TOKEN:
+        case SPACE_TOKEN:
+            // Ignore these.
+            break;
+        case SECTION_START_TOKEN:
+            current_section = UNKNOWN_SECTION;
+            value = strtok(&buffer[1], "]");
+            assert(value != NULL);
+
+            if (strncmp(value, "app", sizeof("app")) == 0) {
+                current_section = APP_SECTION;
+            }
+            if (strncmp(value, "object", sizeof("object")) == 0) {
+                current_section = OBJECT_SECTION;
+            }
+
+            break;
+        default:
+            if (current_section != APP_SECTION &&
+                    current_section != OBJECT_SECTION) {
+                continue;
+            }
+
+            key = strtok(&buffer[0], "=");
+            assert(key != NULL);
+
+            value = strtok(NULL, "\0");
+            assert(value != NULL);
+
+            if (current_section == APP_SECTION) {
+                if (strncmp(key, "object_file", sizeof("object_file")) == 0) {
+                    config->app->object_file = malloc(max_line_len);
+                    assert(config->app->object_file != NULL);
+                    strncpy(config->app->object_file, value, max_line_len);
+                }
+            }
+
+            if (current_section == OBJECT_SECTION) {
+                if (strncmp(key, "vert_shader_file", sizeof("vert_shader_file")) == 0) {
+                    config->object->vert_shader_file = malloc(max_line_len);
+                    assert(config->object->vert_shader_file != NULL);
+                    strncpy(config->object->vert_shader_file, value, max_line_len);
+                }
+                else if (strncmp(key, "frag_shader_file", sizeof("frag_shader_file")) == 0) {
+                    config->object->frag_shader_file = malloc(max_line_len);
+                    assert(config->object->frag_shader_file != NULL);
+                    strncpy(config->object->frag_shader_file, value, max_line_len);
+                }
+            }
+        }
+    }
 
     log_debug("read_config }");
     log_debug("  -out- config - %x", config);
     return config;
 }
-
 
 void log_config(Config *config)
 {
@@ -123,9 +176,12 @@ void destroy_config(Config *config)
     log_debug("destroy_config {");
 
     assert(config->app != NULL);
+    free(config->app->object_file);
     free(config->app);
 
     assert(config->object != NULL);
+    free(config->object->vert_shader_file);
+    free(config->object->frag_shader_file);
     free(config->object);
 
     free(config);
