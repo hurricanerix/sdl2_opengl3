@@ -10,20 +10,35 @@ Exporting Objects from Blender
 ------------------------------
 Add texture coords to object
 1. Select your object.
+
 2. 3D View toolbar -> Edit Mode -> Mesh -> Faces -> Triangulate Faces (Ctl T)
+
 3. Outliner -> Object Data -> UV Maps -> Add
+
 4. Outliner -> Texture -> Show material textures -> Tex
+    
     1. Type = Image or Movie
+    
     2. Mapping -> Coordinates = UV
+    
     3. Image -> Open (test.bmp)
+
 5. 3D View -> Edit Mode -> Edge Select
+    
     1. (click where you want a seam)
+    
     2. Mesh Tools -> UV Mapping -> Mark Seam
+    
     3. (repeat as needed)
+    
     4. Select all faces
+
 6. UV/Image Editor
+    
     1. Browse image to be linked -> test.bmp
+    
     2. UVs -> Unwrap
+
 7. File -> Export -> Standord (.ply)
 
 
