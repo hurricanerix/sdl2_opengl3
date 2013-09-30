@@ -26,14 +26,12 @@
 in float LightIntensity;
 in vec2 TexCoord;
 
-uniform sampler2D NormalMap;
-//uniform sampler2D ColorMap;
+uniform sampler2D ColorMap;
 
 out vec4 FracColor;
 
 void main()
 {
-    //vec3 color = texture(ColorMap, TexCoord).rgb;
-    vec3 color = texture(NormalMap, TexCoord).rgb;
+    vec3 color = texture(ColorMap, TexCoord).rgb;
     FracColor = vec4(color * LightIntensity, 1.0);
 }

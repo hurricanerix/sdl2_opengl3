@@ -36,9 +36,7 @@ const vec3   LightPosition = vec3(2.0, 2.0, 2.0);
 float  DiffuseContribution = 1.0 - SpecularContribution;
 
 out float    LightIntensity;
-out vec3 LightDir;
-out vec3 EyeDir;
-out vec2     TexCoord;
+smooth out vec2     TexCoord;
 
 // TODO: calculate this and pass it in.
 mat3 getNormalMatrix()
@@ -61,9 +59,6 @@ void main()
     vec3 viewVec      = normalize(-ecPosition);
     float diffuse     = max(dot(lightVec, tnorm), 0.0);
     float spec        = 0.0;
-
-    LightDir = lightVec;
-    EyeDir = viewVec;
 
     if (diffuse > 0.0) {
         spec = max(dot(reflectVec, viewVec), 0.0);
