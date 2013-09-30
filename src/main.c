@@ -53,6 +53,7 @@ float mvpMatrix[16];
 float rotMatrix[9];
 
 void render_scene();
+void setup_textures(Config *config);
 void cleanup(Config *config);
 void process_keys(unsigned char key, int x, int y);
 void set_uniforms();
@@ -154,10 +155,10 @@ int main(int argc, char *argv[])
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2,0.2,0.2,1.0);
 
-    //p = setupShaders(vertexFileName, fragmentFileName);
     p = setupShaders(config->object->vert_shader_file,
         config->object->frag_shader_file);
     setupBuffers(config->app->object_file);
+    setup_textures(config);
 
     SDL_Event event;
 
@@ -280,4 +281,16 @@ void change_size(int w, int h)
 
 
     log_debug("change_size }");
+}
+
+void setup_textures(Config *config)
+{
+    log_debug("setup_textures {");
+    log_debug("  -in- config - %x", config);
+
+    for(int i = 0; i < config->texture_count; i++) {
+        setup_texture(&(config->textures[i]));
+    }
+
+    log_debug("setup_textures }");
 }

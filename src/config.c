@@ -33,7 +33,8 @@
 
 
 enum ConfigSections {
-    UNKNOWN_SECTION, APP_SECTION, OBJECT_SECTION, VERT_SECTION, FRAG_SECTION};
+    UNKNOWN_SECTION, APP_SECTION, OBJECT_SECTION,
+    TEXTURES_SECTION, VERT_SECTION, FRAG_SECTION};
 
 #define SECTION_START_TOKEN ('[')
 #define SECTION_END_TOKEN (']')
@@ -63,6 +64,7 @@ Config *get_config(char *filename)
 
     config->vert_uniform_count = 0;
     config->frag_uniform_count = 0;
+    config->texture_count = 0;
 
     int ini_size;
     char *ini_data = text_file_read(filename, &ini_size);
@@ -90,6 +92,9 @@ Config *get_config(char *filename)
             if (strncmp(value, "object", sizeof("object")) == 0) {
                 current_section = OBJECT_SECTION;
             }
+            if (strncmp(value, "textures", sizeof("textures")) == 0) {
+                current_section = TEXTURES_SECTION;
+            }
             if (strncmp(value, "vert_shader", sizeof("vert_shader")) == 0) {
                 current_section = VERT_SECTION;
             }
@@ -101,6 +106,7 @@ Config *get_config(char *filename)
         default:
             if (current_section != APP_SECTION &&
                     current_section != OBJECT_SECTION &&
+                    current_section != TEXTURES_SECTION &&
                     current_section != VERT_SECTION &&
                     current_section != FRAG_SECTION) {
                 continue;
@@ -131,6 +137,15 @@ Config *get_config(char *filename)
                     assert(config->object->frag_shader_file != NULL);
                     strncpy(config->object->frag_shader_file, value, MAX_LINE_LEN);
                 }
+            }
+
+            if (current_section == TEXTURES_SECTION) {
+                assert(config->texture_count + 1 != MAX_TEXTURE_COUNT);
+                TextureConfig *t;
+                t = &(config->textures[config->texture_count]);
+                strncpy(t->name, key, MAX_LINE_LEN);
+                strncpy(t->bmp_file, value, MAX_LINE_LEN);
+                config->texture_count++;
             }
 
             if (current_section == VERT_SECTION || current_section == FRAG_SECTION) {
@@ -222,6 +237,10 @@ void log_config(Config *config)
     log_app_config(config->app);
     log_debug("  object - %x", config->object);
     log_object_config(config->object);
+    log_info("texture_count: %d", config->texture_count);
+    for (int i = 0; i < config->texture_count; i++) {
+        log_texture_config(&(config->textures[i]));
+    }
     log_info("vert_uniform_count: %d", config->vert_uniform_count);
     for (int i = 0; i < config->vert_uniform_count; i++) {
         log_uniform_config(&(config->vert_uniforms[i]));
@@ -296,6 +315,19 @@ void log_uniform_config(UniformConfig *config)
     }
 
     log_debug("log_uniform_config }");
+}
+
+void log_texture_config(TextureConfig *config)
+{
+    assert(config != NULL);
+    log_debug("log_texture_config {");
+    log_debug("  -in- config - %x", config);
+
+    log_info("TextureConfig:");
+    log_info("  name - %s", config->name);
+    log_info("  bmp_file - %s", config->bmp_file);
+
+    log_debug("log_texture_config }");
 }
 
 void destroy_config(Config *config)

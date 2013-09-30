@@ -21,31 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef __OBJECT_H__
-#define __OBJECT_H__
+#version 150
 
-#include "config.h"
+in float LightIntensity;
+in vec2 TexCoord;
 
-typedef struct Vertex {
-  float x, y, z;             /* the usual 3-space position of a vertex */
-  float nx, ny, nz;
-  float u, v;
-} Vertex;
+uniform sampler2D ColorMap;
 
-typedef struct Face {
-  unsigned char intensity; /* this user attaches intensity to faces */
-  unsigned char nverts;    /* number of vertex indices in list */
-  int *verts;              /* vertex index list */
-} Face;
+out vec4 FracColor;
 
-//extern GLuint vao[3];
-//extern GLuint vao[3];
-//extern int triangle_count;
-//extern GLuint faces[];
-
-void setup_texture(TextureConfig *config);
-void setupBuffers(char *file_name); // rename to create_object
-void render_object();
-void destroy_object();
-
-#endif//__OBJECT_H__
+void main()
+{
+    vec3 color = texture(ColorMap, TexCoord).rgb;
+    FracColor = vec4(color * LightIntensity, 1.0);
+}

@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 #version 150
- 
+
 in float LightIntensity;
 
 uniform vec3 Color;

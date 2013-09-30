@@ -30,11 +30,13 @@ uniform float  SpecularContribution;
 
 in vec4      MCvertex;
 in vec3      MCnormal;
+in vec2      TexCoord0;
 
 const vec3   LightPosition = vec3(2.0, 2.0, 2.0);
 float  DiffuseContribution = 1.0 - SpecularContribution;
 
 out float    LightIntensity;
+smooth out vec2     TexCoord;
 
 // TODO: calculate this and pass it in.
 mat3 getNormalMatrix()
@@ -66,5 +68,6 @@ void main()
     LightIntensity = DiffuseContribution * diffuse +
                      SpecularContribution * spec;
 
+    TexCoord    = TexCoord0.st;
     gl_Position = MVPMatrix * RMCvertex;
 }

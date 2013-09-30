@@ -35,6 +35,11 @@
 #include "plyfile.h"
 #include "shader.h"
 #include "object.h"
+#include "bmp.h"
+
+unsigned char *bmp_data;
+int bmp_width;
+int bmp_height;
 
 
 PlyProperty vert_props[] = { /* list of property information for a vertex */
@@ -44,6 +49,8 @@ PlyProperty vert_props[] = { /* list of property information for a vertex */
   {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,nx), 0, 0, 0, 0},
   {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,ny), 0, 0, 0, 0},
   {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,nz), 0, 0, 0, 0},
+  {"s", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,u), 0, 0, 0, 0},
+  {"t", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,v), 0, 0, 0, 0},
 };
 PlyProperty face_props[] = { /* list of property information for a vertex */
   {"intensity", PLY_UCHAR, PLY_UCHAR, offsetof(Face,intensity), 0, 0, 0, 0},
@@ -56,12 +63,47 @@ GLuint vao[3];
 
 float *vertices;
 float *normals;
+float *tex_coords;
 GLuint *faces;
-GLuint face_count = -1;
+
 GLuint vertex_count = -1;
-GLuint buffers[3];
+GLuint tex_count = -1;
+GLuint face_count = -1;
+
+GLuint buffers[4];
 
 void read_object(char *file_name);
+
+void setup_texture(TextureConfig *config)
+{
+    assert(config != NULL);
+    log_debug("init_2d_texture {");
+    log_debug("  -in- config - %x {", config);
+
+    unsigned char *bmp_data;
+    int bmp_width;
+    int bmp_height;
+    GLuint textureID;
+
+    load_bmp(config->bmp_file, &bmp_width, &bmp_height, &bmp_data);
+
+    glGenTextures(1, &textureID);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bmp_width, bmp_height, 0, GL_RGB,
+        GL_UNSIGNED_BYTE, bmp_data);
+
+    free(bmp_data);
+
+    log_debug("init_2d_texture }");
+}
+
 
 void setupBuffers(char *file_name)
 {
@@ -93,8 +135,15 @@ void setupBuffers(char *file_name)
     glEnableVertexAttribArray(normalLoc);
     glVertexAttribPointer(normalLoc, 3, GL_FLOAT, 0, 0, 0);
 
+    // bind buffer for tex coords and copy data into buffer
     glGenBuffers(1, &buffers[2]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(tex_coords) * tex_count, tex_coords, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(texLoc);
+    glVertexAttribPointer(texLoc, 3, GL_FLOAT, 0, 0, 0);
+
+    glGenBuffers(1, &buffers[3]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[3]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * face_count, faces, GL_STATIC_DRAW);
 
     log_debug("setupBuffers }");
@@ -128,6 +177,7 @@ void destroy_object()
     free(faces);
     face_count = -1;
     vertex_count = -1;
+    tex_count = -1;
 
     log_debug("destroy_object }");
 }
@@ -174,8 +224,10 @@ void read_object(char *file_name)
         // if we're on vertex elements, read them in 
         if (equal_strings ("vertex", elem_name)) {
             vertex_count = num_elems * 3;
+            tex_count = num_elems * 2;
             vertices = malloc(sizeof(float) * vertex_count);
             normals = malloc(sizeof(float) * vertex_count);
+            tex_coords = malloc(sizeof(float) * tex_count);
 
             // create a vertex list to hold all the vertices 
             vlist = (Vertex **) malloc (sizeof (Vertex *) * num_elems);
@@ -187,6 +239,8 @@ void read_object(char *file_name)
             ply_get_property (ply, elem_name, &vert_props[3]);
             ply_get_property (ply, elem_name, &vert_props[4]);
             ply_get_property (ply, elem_name, &vert_props[5]);
+            ply_get_property (ply, elem_name, &vert_props[6]);
+            ply_get_property (ply, elem_name, &vert_props[7]);
 
             // grab all the vertex elements 
             for (j = 0; j < num_elems; j++) {
@@ -206,6 +260,9 @@ void read_object(char *file_name)
                 normals[base] = vlist[j]->nx;
                 normals[base + 1] = vlist[j]->ny;
                 normals[base + 2] = vlist[j]->nz;
+
+                tex_coords[base] = vlist[j]->u;
+                tex_coords[base + 1] = vlist[j]->v;
             }
         }
 

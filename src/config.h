@@ -26,6 +26,7 @@
 
 #define MAX_LINE_LEN (1024)
 #define MAX_UNIFORM_COUNT (10)
+#define MAX_TEXTURE_COUNT (4)
 
 typedef struct AppConfig {
     char *object_file;
@@ -50,6 +51,11 @@ typedef struct UniformConfig {
     float w;
 } UniformConfig;
 
+typedef struct TextureConfig {
+    char name[MAX_LINE_LEN];
+    char bmp_file[MAX_LINE_LEN];
+} TextureConfig;
+
 typedef struct Config {
     AppConfig *app;
     ObjectConfig *object;
@@ -57,12 +63,15 @@ typedef struct Config {
     UniformConfig vert_uniforms[MAX_UNIFORM_COUNT];
     int frag_uniform_count;
     UniformConfig frag_uniforms[MAX_UNIFORM_COUNT];
+    int texture_count;
+    TextureConfig textures[MAX_TEXTURE_COUNT];
 } Config;
 
 Config *get_config(char *filename);
 void log_config(Config *config);
 void log_app_config(AppConfig *config);
 void log_object_config(ObjectConfig *config);
+void log_texture_config(TextureConfig *config);
 void log_uniform_config(UniformConfig *config);
 void destroy_config(Config *config);
 
