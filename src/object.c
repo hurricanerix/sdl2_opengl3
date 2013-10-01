@@ -32,6 +32,7 @@
 #endif
 
 #include "logger.h"
+#include "3dmath.h"
 #include "plyfile.h"
 #include "shader.h"
 #include "object.h"
@@ -63,6 +64,7 @@ GLuint vao[3];
 
 float *vertices;
 float *normals;
+float *tangents;
 float *tex_coords;
 GLuint *faces;
 
@@ -70,7 +72,7 @@ GLuint vertex_count = -1;
 GLuint tex_count = -1;
 GLuint face_count = -1;
 
-GLuint buffers[4];
+GLuint buffers[5];
 
 void read_object(char *file_name);
 
@@ -115,7 +117,7 @@ void setupBuffers(char *file_name)
     assert(vertex_count != -1);
     assert(face_count != -1);
 
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     //glFrontFace(GL_CW);
 
     glGenVertexArrays(1, vao);
@@ -135,15 +137,22 @@ void setupBuffers(char *file_name)
     glEnableVertexAttribArray(normalLoc);
     glVertexAttribPointer(normalLoc, 3, GL_FLOAT, 0, 0, 0);
 
-    // bind buffer for tex coords and copy data into buffer
+    // bind buffer for tanget and copy data into buffer
     glGenBuffers(1, &buffers[2]);
     glBindBuffer(GL_ARRAY_BUFFER, buffers[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(tangents) * vertex_count, tangents, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(tangentLoc);
+    glVertexAttribPointer(tangentLoc, 3, GL_FLOAT, 0, 0, 0);
+
+    // bind buffer for tex coords and copy data into buffer
+    glGenBuffers(1, &buffers[3]);
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[3]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(tex_coords) * tex_count, tex_coords, GL_STATIC_DRAW);
     glEnableVertexAttribArray(texLoc);
     glVertexAttribPointer(texLoc, 3, GL_FLOAT, 0, 0, 0);
 
-    glGenBuffers(1, &buffers[3]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[3]);
+    glGenBuffers(1, &buffers[4]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[4]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * face_count, faces, GL_STATIC_DRAW);
 
     log_debug("setupBuffers }");
@@ -174,6 +183,9 @@ void destroy_object()
     glDeleteVertexArrays(1, vao);
 
     free(vertices);
+    free(normals);
+    free(tangents);
+    free(tex_coords);
     free(faces);
     face_count = -1;
     vertex_count = -1;
@@ -227,6 +239,7 @@ void read_object(char *file_name)
             tex_count = num_elems * 2;
             vertices = malloc(sizeof(float) * vertex_count);
             normals = malloc(sizeof(float) * vertex_count);
+            tangents = malloc(sizeof(float) * vertex_count);
             tex_coords = malloc(sizeof(float) * tex_count);
 
             // create a vertex list to hold all the vertices 
@@ -252,17 +265,19 @@ void read_object(char *file_name)
                 // print out vertex x,y,z for debugging 
                 //log_info("Vertex: %g %g %g", vlist[j]->x, vlist[j]->y, vlist[j]->z);
                 //log_info("Normals: %g %g %g", vlist[j]->nx, vlist[j]->ny, vlist[j]->nz);
-                int base = j * 3;
-                vertices[base] = vlist[j]->x;
-                vertices[base + 1] = vlist[j]->y;
-                vertices[base + 2] = vlist[j]->z;
+                int x = (j * 3);
+                int y = (j * 3) + 1;
+                int z = (j * 3) + 2; 
+                vertices[x] = vlist[j]->x;
+                vertices[y] = vlist[j]->y;
+                vertices[z] = vlist[j]->z;
 
-                normals[base] = vlist[j]->nx;
-                normals[base + 1] = vlist[j]->ny;
-                normals[base + 2] = vlist[j]->nz;
+                normals[x] = vlist[j]->nx;
+                normals[y] = vlist[j]->ny;
+                normals[z] = vlist[j]->nz;
 
-                tex_coords[base] = vlist[j]->u;
-                tex_coords[base + 1] = vlist[j]->v;
+                tex_coords[x] = vlist[j]->u;
+                tex_coords[y] = vlist[j]->v;
             }
         }
 
@@ -278,6 +293,7 @@ void read_object(char *file_name)
             ply_get_property (ply, elem_name, &face_props[1]);
 
             // grab all the face elements 
+            int current_tan = 0;
             for (j = 0; j < num_elems; j++) {
                 // grab and element from the file 
                 flist[j] = (Face *) malloc (sizeof (Face));
@@ -286,13 +302,64 @@ void read_object(char *file_name)
                 // print out face info, for debugging 
                 //log_info("Face: %d, list = ", flist[j]->intensity);
 
-                int base = j * 3;
-                faces[base] = flist[j]->verts[0];
-                faces[base + 1] = flist[j]->verts[1];
-                faces[base + 2] = flist[j]->verts[2];
+                int x = (j * 3);
+                int y = (j * 3) + 1;
+                int z = (j * 3) + 2;
+                faces[x] = flist[j]->verts[0];
+                faces[y] = flist[j]->verts[1];
+                faces[z] = flist[j]->verts[2];
 
-                for (k = 0; k < flist[j]->nverts; k++) {
-                    //log_info("-- %d ", flist[j]->verts[k]);
+                float pAx = vertices[faces[x]];
+                float pAy = vertices[faces[x] + 1];
+                float pAz = vertices[faces[x] + 2];
+                float tAx = tex_coords[faces[x]];
+                float tAy = tex_coords[faces[x] + 1];
+
+                float pBx = vertices[faces[y]];
+                float pBy = vertices[faces[y] + 1];
+                float pBz = vertices[faces[y] + 2];
+                float tBx = tex_coords[faces[y]];
+                float tBy = tex_coords[faces[y] + 1];
+
+                float pCx = vertices[faces[z]];
+                float pCy = vertices[faces[z] + 1];
+                float pCz = vertices[faces[z] + 2];
+                float tCx = tex_coords[faces[z]];
+                float tCy = tex_coords[faces[z] + 1];
+                printf("FACE\n");
+
+                for (k = 0; k < 3; k++) {
+                    printf("VERT %d %d %d\n", k*3, k*3+1, k*3+2);
+                    get_sl_tangent(
+                        pAx, pAy, pAz, tAx, tAy,
+                        pBx, pBy, pBz, tBx, tBy,
+                        pCx, pCy, pCz, tCx, tCy,
+                        &(tangents[current_tan]),
+                        &(tangents[current_tan + 1]),
+                        &(tangents[current_tan + 2]));
+                    current_tan += 2;
+
+                // swap around
+                float tmpx, tmpy, tmpz;
+                tmpx = pAx;
+                tmpy = pAy;
+                tmpz = pAz;
+                pAx = pCx;
+                pAy = pCy;
+                pAz = pCz;
+                pCx = pBx;
+                pCy = pBy;
+                pCz = pBz;
+                pBx = tmpx;
+                pBy = tmpy;
+                pBz = tmpz;
+
+                tAx = tCx;
+                tAy = tCy;
+                tCx = tBx;
+                tCy = tBy;
+                tBx = tmpx;
+                tBy = tmpy;
                 }
             }
         }

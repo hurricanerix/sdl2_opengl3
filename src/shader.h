@@ -26,7 +26,7 @@
 
 #include "config.h"
 
-extern GLuint vertexLoc, normalLoc, texLoc;
+extern GLuint vertexLoc, normalLoc, tangentLoc, texLoc;
 extern GLuint projMatrixLoc, viewMatrixLoc;
 extern GLuint rotMatrixLoc;
 

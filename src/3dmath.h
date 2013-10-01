@@ -35,5 +35,13 @@ void setTranslationMatrix(float *mat, float x, float y, float z);
 void buildProjectionMatrix(float *projMatrix, float fov, float ratio, float nearP, float farP);
 void setCamera(float *viewMatrix, float posX, float posY, float posZ,
                float lookAtX, float lookAtY, float lookAtZ);
+void get_sl_tangent(
+    float pAx, float pAy, float pAz,
+    float tAx, float tAy,
+    float pBx, float pBy, float pBz,
+    float tBx, float tBy,
+    float pCx, float pCy, float pCz,
+    float tCx, float tCy,
+    float *tx, float *ty, float *tz);
 
 #endif//__3D_MATH_H__

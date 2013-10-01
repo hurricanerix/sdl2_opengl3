@@ -290,3 +290,55 @@ void setCamera(float *viewMatrix, float posX, float posY, float posZ,
     log_matrix(viewMatrix, 4, 4);
     log_debug("setCamera }");
 }
+
+// Get Surface Local Tangent
+void get_sl_tangent(
+    float pAx, float pAy, float pAz,
+    float tAx, float tAy,
+    float pBx, float pBy, float pBz,
+    float tBx, float tBy,
+    float pCx, float pCy, float pCz,
+    float tCx, float tCy,
+    float *tx, float *ty, float *tz)
+{
+    // Calculates the vector of the texture coordinates edges, the distance between them.
+    float tdistBAx, tdistBAy;
+    tdistBAx = tBx - tAx;
+    tdistBAy = tBy - tAy;
+
+    float tdistCAx, tdistCAy;
+    tdistCAx = tCx - tAx;
+    tdistCAy = tCy - tAy;
+
+    // Calculates the triangle's area.
+    float area;
+    area = tdistBAx * tdistCAy - tdistBAy * tdistCAx;
+
+    //  Tangent
+    if (area == 0.0f) {
+        *tx = 0.0;
+        *ty = 0.0;
+        *tz = 0.0;
+    } else {
+        float delta = 1.0f / area;
+        float distBAx, distBAy, distBAz;
+        distBAx = pBx - pAx;
+        distBAy = pBy - pAy;
+        distBAz = pBz - pAz;
+
+        float distCAx, distCAy, distCAz;
+        distCAx = pCx - pAx;
+        distCAy = pCy - pAy;
+        distCAz = pCz - pAz;
+
+        // Calculates the face tangent to the current triangle.
+        *tx = delta * ((distBAx * tdistCAy) + (distCAx * -tdistBAy));
+        *ty = delta * ((distBAy * tdistCAy) + (distCAy * -tdistBAy));
+        *tz = delta * ((distBAz * tdistCAy) + (distCAz * -tdistBAy));
+    }
+
+    // Averages the new tagent vector with the oldest buffered.
+    //tangentBuffer[i1] = vec3Add(tangent, tangentBuffer[i1]);
+    //tangentBuffer[i2] = vec3Add(tangent, tangentBuffer[i2]);
+    //tangentBuffer[i3] = vec3Add(tangent, tangentBuffer[i3]);
+}
