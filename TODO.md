@@ -1,6 +1,7 @@
 TODO
 ====
 * Clean up code. (add asserts)
+* Doxygen docs.
 * Re-write ply code to use stdlibs.
 * Calculate Normal Matrix in application and pass in to vertex shader.
 * Fix bump map example (fix tangents)
