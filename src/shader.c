@@ -44,8 +44,6 @@ GLuint rotMatrixLoc;
 void set_uniform(int program, UniformConfig *config)
 {
     assert(config != NULL);
-    log_debug("set_uniform {");
-    log_debug("  -in- config - %x", config);
 
     GLuint loc = glGetUniformLocation(program, config->name);
     switch(config->type) {
@@ -68,15 +66,11 @@ void set_uniform(int program, UniformConfig *config)
         break;
     }
 
-    log_debug("set_uniform }");
 }
 
 int printOglError(char *file, int line)
 {
     assert(file != NULL);
-    log_debug("printOglError {");
-    log_debug("  -in- file - %s", file);
-    log_debug("  -in- line - %d", line);
     //
     // Returns 1 if an OpenGL error occurred, 0 otherwise.
     //
@@ -91,15 +85,11 @@ int printOglError(char *file, int line)
         glErr = glGetError();
     }
 
-    log_debug("printOglError }");
-    log_debug("  -out- retCode - %d", retCode);
     return retCode;
 }
 
 void printShaderInfoLog(GLuint obj)
 {
-    log_debug("printShaderInfoLog {");
-    log_debug("  -in- obj - %d", obj);
 
     int infologLength = 0;
     int charsWritten  = 0;
@@ -114,13 +104,10 @@ void printShaderInfoLog(GLuint obj)
         free(infoLog);
     }
 
-    log_debug("printShaderInfoLog }");
 }
 
 void printProgramInfoLog(GLuint obj)
 {
-    log_debug("printProgramInfoLog {");
-    log_debug("  -in- obj - %d", obj);
     int infologLength = 0;
     int charsWritten  = 0;
     char *infoLog;
@@ -135,16 +122,12 @@ void printProgramInfoLog(GLuint obj)
         free(infoLog);
     }
 
-    log_debug("printProgramInfoLog }");
 }
 
 GLuint setupShaders(char *vertexFileName, char *fragmentFileName)
 {
     assert(vertexFileName != NULL);
     assert(fragmentFileName != NULL);
-    log_debug("setupShaders {");
-    log_debug("  -in- vertexFileName - %s", vertexFileName);
-    log_debug("  -in- fragmentFileName - %s", fragmentFileName);
 
     char *vs = NULL,*fs = NULL;
 
@@ -189,6 +172,5 @@ GLuint setupShaders(char *vertexFileName, char *fragmentFileName)
     viewMatrixLoc = glGetUniformLocation(p, "MVMatrix");
     rotMatrixLoc = glGetUniformLocation(p, "RotMatrix");
 
-    log_debug("setupShaders }");
     return(p);
 }

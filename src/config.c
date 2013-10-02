@@ -47,8 +47,6 @@ enum ConfigSections {
 Config *get_config(char *filename)
 {
     assert(filename != NULL);
-    log_debug("read_config {");
-    log_debug("  -in- filename - %s", filename);
 
     Config *config = malloc(sizeof(Config));
     assert(config != NULL);
@@ -221,119 +219,97 @@ Config *get_config(char *filename)
         }
     }
 
-    log_debug("read_config }");
-    log_debug("  -out- config - %x", config);
     return config;
 }
 
-void log_config(Config *config)
+void print_config(Config *config)
 {
     assert(config != NULL);
-    log_debug("log_config {");
-    log_debug("  -in- config - %x", config);
 
-    log_info("Config:");
-    log_debug("  app - %x", config->app);
-    log_app_config(config->app);
-    log_debug("  object - %x", config->object);
-    log_object_config(config->object);
-    log_info("texture_count: %d", config->texture_count);
+    printf("Config:\n");
+    print_app_config(config->app);
+    print_object_config(config->object);
+    printf("texture_count: %d\n", config->texture_count);
     for (int i = 0; i < config->texture_count; i++) {
-        log_texture_config(&(config->textures[i]));
+        print_texture_config(&(config->textures[i]));
     }
-    log_info("vert_uniform_count: %d", config->vert_uniform_count);
+    printf("vert_uniform_count: %d\n", config->vert_uniform_count);
     for (int i = 0; i < config->vert_uniform_count; i++) {
-        log_uniform_config(&(config->vert_uniforms[i]));
+        print_uniform_config(&(config->vert_uniforms[i]));
     }
-    log_info("frag_uniform_count: %d", config->frag_uniform_count);
+    printf("frag_uniform_count: %d\n", config->frag_uniform_count);
     for (int i = 0; i < config->frag_uniform_count; i++) {
-        log_uniform_config(&(config->frag_uniforms[i]));
+        print_uniform_config(&(config->frag_uniforms[i]));
     }
 
-    log_debug("log_config }");
 }
 
-void log_app_config(AppConfig *config)
+void print_app_config(AppConfig *config)
 {
     assert(config != NULL);
-    log_debug("log_app_config {");
-    log_debug("  -in- config - %x", config);
 
-    log_info("AppConfig:");
-    log_info("  object_file - %s", config->object_file);
+    printf("AppConfig:\n");
+    printf("  object_file - %s\n", config->object_file);
 
-    log_debug("log_app_config }");
 }
 
-void log_object_config(ObjectConfig *config)
+void print_object_config(ObjectConfig *config)
 {
     assert(config != NULL);
-    log_debug("log_object_config {");
-    log_debug("  -in- config - %x", config);
 
-    log_info("ObjectConfig:");
-    log_info("  vert_shader_file - %s", config->vert_shader_file);
-    log_info("  frag_shader_file - %s", config->frag_shader_file);
+    printf("ObjectConfig:\n");
+    printf("  vert_shader_file - %s\n", config->vert_shader_file);
+    printf("  frag_shader_file - %s\n", config->frag_shader_file);
 
-    log_debug("log_object_config }");
 }
 
-void log_uniform_config(UniformConfig *config)
+void print_uniform_config(UniformConfig *config)
 {
     assert(config != NULL);
-    log_debug("log_uniform_config {");
-    log_debug("  -in- config - %x", config);
 
-    log_info("UniformConfig:");
-    log_info("  type - %d", config->type);
-    log_info("  name - %s", config->name);
+    printf("UniformConfig:\n");
+    printf("  type - %d\n", config->type);
+    printf("  name - %s\n", config->name);
     switch(config->type) {
     case UNIFORM_INT:
-        log_info("  i - %d", config->i);
+        printf("  i - %d\n", config->i);
         break;
     case UNIFORM_FLOAT:
-        log_info("  x - %f", config->x);
+        printf("  x - %f\n", config->x);
         break;
     case UNIFORM_VEC2:
-        log_info("  x - %f", config->x);
-        log_info("  y - %f", config->y);
+        printf("  x - %f\n", config->x);
+        printf("  y - %f\n", config->y);
         break;
     case UNIFORM_VEC3:
-        log_info("  x - %f", config->x);
-        log_info("  y - %f", config->y);
-        log_info("  z - %f", config->z);
+        printf("  x - %f\n", config->x);
+        printf("  y - %f\n", config->y);
+        printf("  z - %f\n", config->z);
         break;
     case UNIFORM_VEC4:
-        log_info("  x - %f", config->x);
-        log_info("  y - %f", config->y);
-        log_info("  z - %f", config->z);
-        log_info("  w - %f", config->w);
+        printf("  x - %f\n", config->x);
+        printf("  y - %f\n", config->y);
+        printf("  z - %f\n", config->z);
+        printf("  w - %f\n", config->w);
         break;
     default:
-        log_info("  UNKNOWN DATA TYPE");
+        printf("  UNKNOWN DATA TYPE\n");
         break;
     }
-
-    log_debug("log_uniform_config }");
 }
 
-void log_texture_config(TextureConfig *config)
+void print_texture_config(TextureConfig *config)
 {
     assert(config != NULL);
-    log_debug("log_texture_config {");
-    log_debug("  -in- config - %x", config);
 
-    log_info("TextureConfig:");
-    log_info("  name - %s", config->name);
-    log_info("  bmp_file - %s", config->bmp_file);
-
-    log_debug("log_texture_config }");
+    printf("TextureConfig:");
+    printf("  name - %s\n", config->name);
+    printf("  bmp_file - %s\n", config->bmp_file);
 }
 
 void destroy_config(Config *config)
 {
     assert(config != NULL);
-    log_debug("destroy_config {");
 
     assert(config->app != NULL);
     free(config->app->object_file);
@@ -345,6 +321,4 @@ void destroy_config(Config *config)
     free(config->object);
 
     free(config);
-
-    log_debug("destroy_config }");
 }

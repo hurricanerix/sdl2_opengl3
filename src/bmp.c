@@ -39,11 +39,6 @@ unsigned int imageSize;   // = width*height*3
 void load_bmp(char *imagepath, int *width, int *height, unsigned char **data)
 {
     assert(imagepath != NULL);
-    log_debug("read_file {");
-    log_debug("  -in- imagepath - %s", imagepath);
-    log_debug("  -in- width - %x", width);
-    log_debug("  -in- height - %x", height);
-    log_debug("  -in- data - %x", data);
 
     // Open the file
     FILE * file = fopen(imagepath,"rb");
@@ -87,8 +82,4 @@ void load_bmp(char *imagepath, int *width, int *height, unsigned char **data)
     //Everything is in memory now, the file can be closed
     fclose(file);
 
-    log_debug("read_file }");
-    log_debug("  -out- width - %d", *width);
-    log_debug("  -out- height - %d", *height);
-    log_debug("  -out- data - %x", data);
 }

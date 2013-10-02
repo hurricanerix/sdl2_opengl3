@@ -79,8 +79,6 @@ void read_object(char *file_name);
 void setup_texture(TextureConfig *config)
 {
     assert(config != NULL);
-    log_debug("init_2d_texture {");
-    log_debug("  -in- config - %x {", config);
 
     unsigned char *bmp_data;
     int bmp_width;
@@ -102,16 +100,12 @@ void setup_texture(TextureConfig *config)
         GL_UNSIGNED_BYTE, bmp_data);
 
     free(bmp_data);
-
-    log_debug("init_2d_texture }");
 }
 
 
 void setupBuffers(char *file_name)
 {
     assert(file_name != NULL);
-    log_debug("setupBuffers {");
-    log_debug("  -in- file_name - %s {", file_name);
 
     read_object(file_name);
     assert(vertex_count != -1);
@@ -154,23 +148,15 @@ void setupBuffers(char *file_name)
     glGenBuffers(1, &buffers[4]);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[4]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * face_count, faces, GL_STATIC_DRAW);
-
-    log_debug("setupBuffers }");
 }
 
 void render_object()
 {
-    log_debug("render_object {");
-
     glDrawElements(GL_TRIANGLES, face_count, GL_UNSIGNED_INT, NULL);
-
-    log_debug("render_object }");
 }
 
 void destroy_object()
 {
-    log_debug("destroy_object {");
-
     glDisableVertexAttribArray(vertexLoc);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -190,15 +176,11 @@ void destroy_object()
     face_count = -1;
     vertex_count = -1;
     tex_count = -1;
-
-    log_debug("destroy_object }");
 }
 
 void read_object(char *file_name)
 {
     assert(file_name != NULL);
-    log_debug("read_object {");
-    log_debug("  -in- file_name - %s {", file_name);
 
     int i,j,k;
     PlyFile *ply;
@@ -231,7 +213,6 @@ void read_object(char *file_name)
         plist = ply_get_element_description (ply, elem_name, &num_elems, &nprops);
 
         // print the name of the element, for debugging 
-        //log_info("Element %s %d", elem_name, num_elems);
 
         // if we're on vertex elements, read them in 
         if (equal_strings ("vertex", elem_name)) {
@@ -263,8 +244,6 @@ void read_object(char *file_name)
                 ply_get_element (ply, (void *) vlist[j]);
 
                 // print out vertex x,y,z for debugging 
-                //log_info("Vertex: %g %g %g", vlist[j]->x, vlist[j]->y, vlist[j]->z);
-                //log_info("Normals: %g %g %g", vlist[j]->nx, vlist[j]->ny, vlist[j]->nz);
                 int x = (j * 3);
                 int y = (j * 3) + 1;
                 int z = (j * 3) + 2; 
@@ -300,7 +279,6 @@ void read_object(char *file_name)
                 ply_get_element (ply, (void *) flist[j]);
 
                 // print out face info, for debugging 
-                //log_info("Face: %d, list = ", flist[j]->intensity);
 
                 int x = (j * 3);
                 int y = (j * 3) + 1;
@@ -366,7 +344,6 @@ void read_object(char *file_name)
 
         // print out the properties we got, for debugging 
         for (j = 0; j < nprops; j++) {
-            //log_info("property %s", plist[j]->name);
         }
 
         }
@@ -374,16 +351,12 @@ void read_object(char *file_name)
         // grab and print out the comments in the file 
         comments = ply_get_comments (ply, &num_comments);
         for (i = 0; i < num_comments; i++) {
-            //log_info("comment = '%s'", comments[i]);
         }
 
         // grab and print out the object information 
         obj_info = ply_get_obj_info (ply, &num_obj_info);
         for (i = 0; i < num_obj_info; i++) {
-            //log_info("obj_info = '%s'", obj_info[i]);
         }
 
         ply_close(ply);
-
-    log_debug("read_object }");
 }

@@ -68,11 +68,11 @@ typedef struct Config {
 } Config;
 
 Config *get_config(char *filename);
-void log_config(Config *config);
-void log_app_config(AppConfig *config);
-void log_object_config(ObjectConfig *config);
-void log_texture_config(TextureConfig *config);
-void log_uniform_config(UniformConfig *config);
+void print_config(Config *config);
+void print_app_config(AppConfig *config);
+void print_object_config(ObjectConfig *config);
+void print_texture_config(TextureConfig *config);
+void print_uniform_config(UniformConfig *config);
 void destroy_config(Config *config);
 
 #endif//__CONFIG_H__

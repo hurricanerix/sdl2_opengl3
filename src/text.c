@@ -34,9 +34,6 @@
 char *text_file_read(char *filename, int *size)
 {
     assert(filename != NULL);
-    log_debug("text_file_read {");
-    log_debug("  -in- filename - %s", filename);
-    log_debug("  -in- size - %x", size);
 
     FILE *fp;
     char *content = NULL;
@@ -61,9 +58,6 @@ char *text_file_read(char *filename, int *size)
         }
     }
 
-    log_debug("text_file_read }");
-    log_debug("  -out- size - %d", *size);
-    log_debug("  -return- content - %x", content);
     return content;
 }
 
@@ -74,18 +68,9 @@ int get_next_line(char *data, int data_size, char *buffer, int buffer_size)
 
     assert(data != NULL);
     assert(buffer != NULL);
-    log_debug("get_next_line {");
-    log_debug("  -static- prev_data - %x", prev_data);
-    log_debug("  -static- position - %d", position);
-    log_debug("  -in- data - %x", data);
-    log_debug("  -in- data_size - %d", data_size);
-    log_debug("  -in- buffer - %x", buffer);
-    log_debug("  -in- buffer_size - %d", buffer_size);
 
 
     if (position >= data_size) {
-        log_debug("get_next_line }");
-        log_debug("  -return- FALSE");
         return FALSE;
     }
 
@@ -120,7 +105,5 @@ int get_next_line(char *data, int data_size, char *buffer, int buffer_size)
 
     position++;
 
-    log_debug("get_next_line }");
-    log_debug("  -return- TRUE");
     return TRUE;
 }

@@ -152,11 +152,6 @@ Exit:
 ******************************************************************************/
 PlyFile *ply_read(FILE *fp, int *nelems, char ***elem_names)
 {
-    log_debug("ply_read {");
-    log_debug("  -in- fp - %x", fp);
-    log_debug("  -in- nelems - %x", nelems);
-    log_debug("  -in- elem_names - %x", elem_names);
-
     int i,j;
     PlyFile *plyfile;
     int nwords;
@@ -244,8 +239,6 @@ PlyFile *ply_read(FILE *fp, int *nelems, char ***elem_names)
 
     // return a pointer to the file's information 
 
-    log_debug("ply_read }");
-    log_debug("  -out- plyfile - %x", plyfile);
     return (plyfile);
 }
 
@@ -267,12 +260,6 @@ PlyFile *ply_open_for_reading(char *filename, int *nelems, char ***elem_names,
         int *file_type, float *version)
 {
     assert(filename != NULL);
-    log_debug("ply_open_for_reading {");
-    log_debug("  -in- filename - %s", filename);
-    log_debug("  -in- nelems - %x", nelems);
-    log_debug("  -in- elem_names - %x", elem_names);
-    log_debug("  -in- file_type - %x", file_type);
-    log_debug("  -in- version - %x", version);
 
     FILE *fp;
     PlyFile *plyfile;
@@ -282,7 +269,6 @@ PlyFile *ply_open_for_reading(char *filename, int *nelems, char ***elem_names,
     if (fp == NULL) {
         assert(fp != NULL);
     }
-    log_debug("fp: %x", fp);
 
     // create the PlyFile data structure
     plyfile = ply_read(fp, nelems, elem_names);
@@ -294,11 +280,6 @@ PlyFile *ply_open_for_reading(char *filename, int *nelems, char ***elem_names,
     *version = plyfile->version;
 
     // return a pointer to the file's information */
-    log_debug("ply_open_for_reading }");
-    log_debug("  -return- plyfile - %x", plyfile);
-    log_debug("  -out- nelems - %d", *nelems);
-    log_debug("  -out- file_type: %d", *file_type);
-    log_debug("  -out- version: %f", *version);
     return (plyfile);
 }
 
@@ -318,7 +299,6 @@ Exit:
 PlyProperty **ply_get_element_description( PlyFile *plyfile, char *elem_name,
     int *nelems, int *nprops)
 {
-    log_debug("ply_get_element_description");
     int i;
     PlyElement *elem;
     PlyProperty *prop;
@@ -332,9 +312,7 @@ PlyProperty **ply_get_element_description( PlyFile *plyfile, char *elem_name,
     assert(elem != NULL);
 
     *nelems = elem->num;
-    log_debug("nelems = %d", nelems);
     *nprops = elem->nprops;
-    log_debug("nprops = %d", nprops);
 
     // make a copy of the element's property list
     prop_list = (PlyProperty **) myalloc (sizeof (PlyProperty *) * elem->nprops);
@@ -412,16 +390,12 @@ Entry:
 ******************************************************************************/
 void ply_get_property(PlyFile *plyfile, char *elem_name, PlyProperty *prop)
 {
-    log_debug("ply_get_property");
-    log_debug("-- plyfile = %x", plyfile);
-    log_debug("-- elem_name = %s", elem_name);
     PlyElement *elem;
     PlyProperty *prop_ptr;
     int index;
 
     // find information about the element
     elem = find_element (plyfile, elem_name);
-    log_debug("elem = %x", elem);
 
     plyfile->which_elem = elem;
 
@@ -454,9 +428,6 @@ Entry:
 ******************************************************************************/
 void ply_get_element(PlyFile *plyfile, void *elem_ptr)
 {
-    log_debug("ply_get_element");
-    log_debug("-- plyfile - %x", plyfile);
-    log_debug("-- elem_ptr - %x", elem_ptr);
     if (plyfile->file_type == PLY_ASCII) {
         ascii_get_element (plyfile, (char *) elem_ptr);
     } else {
@@ -520,25 +491,18 @@ Compare two strings.  Returns 1 if they are the same, 0 if not.
 ******************************************************************************/
 int equal_strings(char *s1, char *s2)
 {
-    log_debug("equal_strings {");
-    log_debug("  -in- s1 - %x - %s", s1, s1);
-    log_debug("  -in- s2 - %x - %s", s2, s2);
-
     int result;
     result  = strncmp(s1, s2, 32);
     for (int i = 0; i < 4; i++) {
-        log_debug("s1 - %x", s1[i]);
-        log_debug("s2 - %x", s2[i]);
+        //log_debug("s1 - %x", s1[i]);
+        //log_debug("s2 - %x", s2[i]);
     }
-    log_debug("result - %d", result);
     if (result == 0) {
         result = 1;
     } else {
         result = 0;
     }
 
-    log_debug("equal_strings }");
-    log_debug("  -return- result - %d", result);
     return result;
 }
 
@@ -601,10 +565,6 @@ Entry:
 ******************************************************************************/
 void ascii_get_element(PlyFile *plyfile, char *elem_ptr)
 {
-    log_debug("ascii_get_element");
-    log_debug("-- plyfile - %x", plyfile);
-    log_debug("-- elem_ptr - %x", elem_ptr);
-
     //int i,j,k;
     int j,k;
     PlyElement *elem;
@@ -731,11 +691,6 @@ Exit:
 ******************************************************************************/
 char **get_words(FILE *fp, int *nwords, char **orig_line)
 {
-    log_debug("get_words {");
-    log_debug("-in- fp - %x", fp);
-    log_debug("-in- nwords - %x", nwords);
-    log_debug("-in- orig_lines - %x", orig_line);
-
     #define BIG_STRING 4096
     //int i,j;
     static char str[BIG_STRING];
@@ -809,9 +764,6 @@ char **get_words(FILE *fp, int *nwords, char **orig_line)
     // return the list of words
     *nwords = num_words;
     *orig_line = str_copy;
-    log_debug("get_words }");
-    log_debug("  -out- nwords - %d", *nwords);
-    log_debug("  -out- orig_line - %s", *orig_line);
     return (words);
 }
 
@@ -832,9 +784,6 @@ Exit:
 void get_ascii_item(char *word, int type, int *int_val, unsigned int *uint_val,
     double *double_val)
 {
-    log_debug("get_ascii_item {");
-    log_debug("-- word - %s", word);
-    log_debug("-- type - %d", type);
     switch (type) {
     case PLY_CHAR:
     case PLY_UCHAR:
@@ -863,7 +812,6 @@ void get_ascii_item(char *word, int type, int *int_val, unsigned int *uint_val,
         fprintf (stderr, "get_ascii_item: bad type = %d\n", type);
         exit (-1);
   }
-    log_debug("get_ascii_item }");
 }
 
 
@@ -888,7 +836,6 @@ void store_item (
   double double_val
 )
 {
-    log_debug("store_item {");
   unsigned char *puchar;
   short int *pshort;
   unsigned short int *pushort;
@@ -933,7 +880,6 @@ void store_item (
       fprintf (stderr, "store_item: bad type = %d\n", type);
       exit (-1);
   }
-    log_debug("store_item }");
 }
 
 
@@ -947,7 +893,6 @@ Entry:
 ******************************************************************************/
 void add_element (PlyFile *plyfile, char **words, int nwords)
 {
-    log_debug("add_element {");
   PlyElement *elem;
 
   /* create the new element */
@@ -966,7 +911,6 @@ void add_element (PlyFile *plyfile, char **words, int nwords)
   /* add the new element to the object's list */
   plyfile->elems[plyfile->nelems] = elem;
   plyfile->nelems++;
-    log_debug("add_element }");
 }
 
 
@@ -981,7 +925,6 @@ Exit:
 ******************************************************************************/
 int get_prop_type(char *type_name)
 {
-    log_debug("get_prop_type {");
   int i;
 
   for (i = PLY_START_TYPE + 1; i < PLY_END_TYPE; i++)
@@ -990,7 +933,6 @@ int get_prop_type(char *type_name)
 
   /* if we get here, we didn't find the type */
   return (0);
-    log_debug("get_prop_type }");
 }
 
 
@@ -1004,7 +946,6 @@ Entry:
 ******************************************************************************/
 void add_property (PlyFile *plyfile, char **words, int nwords)
 {
-    log_debug("add_property {");
   //int prop_type;
   //int count_type;
   PlyProperty *prop;
@@ -1038,7 +979,6 @@ void add_property (PlyFile *plyfile, char **words, int nwords)
 
   elem->props[elem->nprops] = prop;
   elem->nprops++;
-    log_debug("add_property }");
 }
 
 
@@ -1051,7 +991,6 @@ Entry:
 ******************************************************************************/
 void add_comment (PlyFile *plyfile, char *line)
 {
-    log_debug("add_comment {");
   int i;
 
   /* skip over "comment" and leading spaces and tabs */
@@ -1060,7 +999,6 @@ void add_comment (PlyFile *plyfile, char *line)
     i++;
 
   ply_put_comment (plyfile, &line[i]);
-    log_debug("add_comment }");
 }
 
 
@@ -1073,7 +1011,6 @@ Entry:
 ******************************************************************************/
 void add_obj_info (PlyFile *plyfile, char *line)
 {
-    log_debug("add_obj_info {");
   int i;
 
   /* skip over "obj_info" and leading spaces and tabs */
@@ -1082,7 +1019,6 @@ void add_obj_info (PlyFile *plyfile, char *line)
     i++;
 
   ply_put_obj_info (plyfile, &line[i]);
-    log_debug("add_obj_info }");
 }
 
 
@@ -1091,7 +1027,6 @@ Copy a property.
 ******************************************************************************/
 void copy_property(PlyProperty *dest, PlyProperty *src)
 {
-    log_debug("copy_property {");
   dest->name = strdup (src->name);
   dest->external_type = src->external_type;
   dest->internal_type = src->internal_type;
@@ -1101,7 +1036,6 @@ void copy_property(PlyProperty *dest, PlyProperty *src)
   dest->count_external = src->count_external;
   dest->count_internal = src->count_internal;
   dest->count_offset = src->count_offset;
-    log_debug("copy_property }");
 }
 
 
@@ -1118,21 +1052,15 @@ Entry:
 char *my_alloc(int size, int lnum, char *fname)
 {
     assert(fname != NULL);
-    log_debug("my_alloc {");
-    log_debug("  -in- size - %d", size);
-    log_debug("  -in- lnum - %d", lnum);
-    log_debug("  -in- fname - %x (%s)", fname, fname);
 
     char *ptr;
 
     ptr = (char *) malloc (size);
 
     if (ptr == 0) {
-        log_info("Memory allocation bombed on line %d in %s", lnum, fname);
+        printf("Memory allocation bombed on line %d in %s\n", lnum, fname);
     }
 
-    log_debug("my_alloc }");
-    log_debug("  -return- ptr - %x", ptr);
   return (ptr);
 }
 
