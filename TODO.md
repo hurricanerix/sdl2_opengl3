@@ -1,6 +1,7 @@
 TODO
 ====
 * Clean up code. (add asserts)
+* Re-write ply code to use stdlibs.
 * Calculate Normal Matrix in application and pass in to vertex shader.
 * Create texture map example.
 * Update Makefile to compile on Linux & Windows in addition to OSX.

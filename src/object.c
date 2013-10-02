@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdio.h> 
 #include <stdlib.h>
+#include <strings.h>
 #include <math.h>
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
@@ -215,7 +216,7 @@ void read_object(char *file_name)
         // print the name of the element, for debugging 
 
         // if we're on vertex elements, read them in 
-        if (equal_strings ("vertex", elem_name)) {
+        if (strncmp("vertex", elem_name, sizeof("vertex")) == 0) {
             vertex_count = num_elems * 3;
             tex_count = num_elems * 2;
             vertices = malloc(sizeof(float) * vertex_count);
@@ -261,7 +262,7 @@ void read_object(char *file_name)
         }
 
         // if we're on face elements, read them in 
-        if (equal_strings ("face", elem_name)) {
+        if (strncmp("face", elem_name, sizeof("face")) == 0) {
             // create a list to hold all the face elements 
             face_count = num_elems * 3;
             faces = malloc(sizeof(GLuint) * face_count);

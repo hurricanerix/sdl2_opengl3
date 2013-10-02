@@ -32,6 +32,8 @@
 #include "plyfile.h"
 
 
+#define MAX_STR_LEN (32)
+
 char *type_names[] = {
 "invalid",
 "char", "short", "int",
@@ -51,9 +53,6 @@ int ply_type_size[] = {
 #define OTHER_PROP       0
 #define NAMED_PROP       1
 
-
-/* returns 1 if strings are equal, 0 if not */
-int equal_strings(char *, char *);
 
 /* find an element in a plyfile's list */
 PlyElement *find_element(PlyFile *, char *);
@@ -176,38 +175,34 @@ PlyFile *ply_read(FILE *fp, int *nelems, char ***elem_names)
     //plyfile->other_elems = NULL;
 
     // read and parse the file's header
-    words = get_words (plyfile->fp, &nwords, &orig_line);
-    assert(words && equal_strings(words[0], "ply"));
+    words = get_words(plyfile->fp, &nwords, &orig_line);
+    assert(words && (strncmp(words[0], "ply", sizeof("ply ")) == 0));
 
     while (words) {
         // parse words
 
-        if (equal_strings (words[0], "format")) {
+        if (strncmp(words[0], "format", sizeof("format")) == 0) {
             if (nwords != 3) {
                 return (NULL);
             }
-            if (equal_strings (words[1], "ascii")) {
+            if (strncmp(words[1], "ascii", sizeof("ascii")) == 0) {
                 plyfile->file_type = PLY_ASCII;
-            } else if (equal_strings (words[1], "binary_big_endian")) {
-                plyfile->file_type = PLY_BINARY_BE;
-            } else if (equal_strings (words[1], "binary_little_endian")) {
-                plyfile->file_type = PLY_BINARY_LE;
             } else {
                 return (NULL);
             }
             plyfile->version = atof (words[2]);
             found_format = 1;
-        }
-        else if (equal_strings (words[0], "element"))
+        } else if (strncmp(words[0], "element", sizeof("element")) == 0) {
             add_element (plyfile, words, nwords);
-        else if (equal_strings (words[0], "property"))
+        } else if (strncmp(words[0], "property", sizeof("property")) == 0) {
             add_property (plyfile, words, nwords);
-        else if (equal_strings (words[0], "comment"))
+        } else if (strncmp(words[0], "comment", sizeof("comment")) == 0) {
             add_comment (plyfile, orig_line);
-        else if (equal_strings (words[0], "obj_info"))
+        } else if (strncmp(words[0], "obj_info", sizeof("obj_info")) == 0) {
             add_obj_info (plyfile, orig_line);
-        else if (equal_strings (words[0], "end_header"))
+        } else if (strncmp(words[0], "end_header", sizeof("end_header")) == 0) {
             break;
+        }
 
         // free up words space
         free (words);
@@ -267,7 +262,8 @@ PlyFile *ply_open_for_reading(char *filename, int *nelems, char ***elem_names,
     // open the file for reading
     fp = fopen (filename, "r");
     if (fp == NULL) {
-        assert(fp != NULL);
+        log_error("Could not open file %s\n", filename);
+        exit(1);
     }
 
     // create the PlyFile data structure
@@ -485,28 +481,6 @@ void ply_close(PlyFile *plyfile)
   free (plyfile);
 }
 
-
-/******************************************************************************
-Compare two strings.  Returns 1 if they are the same, 0 if not.
-******************************************************************************/
-int equal_strings(char *s1, char *s2)
-{
-    int result;
-    result  = strncmp(s1, s2, 32);
-    for (int i = 0; i < 4; i++) {
-        //log_debug("s1 - %x", s1[i]);
-        //log_debug("s2 - %x", s2[i]);
-    }
-    if (result == 0) {
-        result = 1;
-    } else {
-        result = 0;
-    }
-
-    return result;
-}
-
-
 /******************************************************************************
 Find an element from the element list of a given PLY object.
 
@@ -522,7 +496,7 @@ PlyElement *find_element(PlyFile *plyfile, char *element)
     int i;
 
     for (i = 0; i < plyfile->nelems; i++)
-        if (equal_strings (element, plyfile->elems[i]->name)) {
+        if (strncmp(element, plyfile->elems[i]->name, MAX_STR_LEN) == 0) {
             return (plyfile->elems[i]);
         }
 
@@ -546,7 +520,7 @@ PlyProperty *find_property(PlyElement *elem, char *prop_name, int *index)
   int i;
 
   for (i = 0; i < elem->nprops; i++)
-    if (equal_strings (prop_name, elem->props[i]->name)) {
+    if (strncmp(prop_name, elem->props[i]->name, MAX_STR_LEN) == 0) {
       *index = i;
       return (elem->props[i]);
     }
@@ -928,7 +902,7 @@ int get_prop_type(char *type_name)
   int i;
 
   for (i = PLY_START_TYPE + 1; i < PLY_END_TYPE; i++)
-    if (equal_strings (type_name, type_names[i]))
+    if (strncmp(type_name, type_names[i], MAX_STR_LEN) == 0)
       return (i);
 
   /* if we get here, we didn't find the type */
@@ -955,7 +929,7 @@ void add_property (PlyFile *plyfile, char **words, int nwords)
 
   prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
 
-  if (equal_strings (words[1], "list")) {       /* is a list */
+  if (strncmp(words[1], "list", sizeof("list")) == 0) {       /* is a list */
     prop->count_external = get_prop_type (words[2]);
     prop->external_type = get_prop_type (words[3]);
     prop->name = strdup (words[4]);
