@@ -175,6 +175,7 @@ void render_scene(Config *config)
 {
     copy_matrix(mvpMatrix, projMatrix);
     multMatrix(mvpMatrix, viewMatrix);
+    print_matrix("model view projection matrix", mvpMatrix, 4);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     static float x, y, z;
@@ -183,9 +184,11 @@ void render_scene(Config *config)
     z += 0.01;
 
     get_rot_matrix(rotMatrix, x, y, z);
+    print_matrix("rotation matrix", rotMatrix, 3);
 
     //setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
     setCamera(viewMatrix, 5, 5, 0, 0, 0, 0);
+    print_matrix("view matrix", viewMatrix, 4);
     glUseProgram(p);
     set_uniforms(config);
 
@@ -249,9 +252,7 @@ void change_size(int w, int h)
 
     ratio = (1.0f * w) / h;
     buildProjectionMatrix(projMatrix, 53.13f, ratio, 1.0f, 30.0f);
-
-
-
+    print_matrix("projection matrix", projMatrix, 4);
 }
 
 void setup_textures(Config *config)

@@ -24,6 +24,7 @@
 #ifndef __3D_MATH_H__
 #define __3D_MATH_H__
 
+void print_matrix(char *label, float *mat, int size);
 void get_rot_matrix(float *m, float x, float y, float z);
 
 void copy_matrix(float *a, float *b);

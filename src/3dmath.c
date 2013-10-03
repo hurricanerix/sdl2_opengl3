@@ -30,14 +30,18 @@
 #include "logger.h"
 
 
-void print_matrix(float *mat, int rowc, int colc)
+void print_matrix(char *label, float *mat, int size)
 {
     assert(mat != NULL);
 
-    for (int i = 0; i < rowc; i++) {
-        for (int j = 0; j < colc; j++) {
-            printf("mat[%d][%d] - %f\n", i, j, mat[rowc * i + colc]);
+    printf("%s\n", label);
+
+    for (int i = 0; i < size; i++) {
+        printf("[");
+        for (int j = 0; j < size; j++) {
+            printf("%f, ", mat[size * i + size]);
         }
+        printf("]\n");
     }
 }
 
@@ -62,8 +66,6 @@ void get_rot_matrix(float *m, float x, float y, float z)
     m[6] = (s1 * s3) - (c1 * c3 * s2);
     m[7] = (c3 * s1) + (c1 * s2 * s3);
     m[8] = c1 * c2;
-
-    print_matrix(m, 3, 3);
 }
 
 // ----------------------------------------------------
@@ -113,8 +115,6 @@ void setIdentityMatrix(float *mat, int size)
     // fill diagonal with 1s
     for (int i = 0; i < size; ++i)
         mat[i + i * size] = 1.0f;
-
-    print_matrix(mat, size, size);
 }
 
 // a = b;
@@ -144,9 +144,6 @@ void multMatrix(float *a, float *b)
         }
     }
     memcpy(a, res, 16 * sizeof(float));
-
-    print_matrix(a, 4, 4);
-    print_matrix(b, 4, 4);
 }
 
 // Defines a transformation matrix mat with a translation
@@ -158,8 +155,6 @@ void setTranslationMatrix(float *mat, float x, float y, float z)
     mat[12] = x;
     mat[13] = y;
     mat[14] = z;
-
-    print_matrix(mat, 4, 4);
 }
 
 // ----------------------------------------------------
@@ -181,8 +176,6 @@ void buildProjectionMatrix(float *projMatrix, float fov, float ratio,
     projMatrix[3 * 4 + 2] = (2.0f * farP * nearP) / (nearP - farP);
     projMatrix[2 * 4 + 3] = -1.0f;
     projMatrix[3 * 4 + 3] = 0.0f;
-
-    print_matrix(projMatrix, 4, 4);
 }
 
 // ----------------------------------------------------
@@ -237,8 +230,6 @@ void setCamera(float *viewMatrix, float posX, float posY, float posZ,
     setTranslationMatrix(aux, -posX, -posY, -posZ);
 
     multMatrix(viewMatrix, aux);
-
-    print_matrix(viewMatrix, 4, 4);
 }
 
 // Get Surface Local Tangent
