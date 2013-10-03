@@ -2,6 +2,7 @@ TODO
 ====
 * Clean up code. (add asserts)
 * Doxygen docs.
+* Add text rendering: http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_01
 * Re-write ply code to use stdlibs.
 * Calculate Normal Matrix in application and pass in to vertex shader.
 * Fix bump map example (fix tangents)
