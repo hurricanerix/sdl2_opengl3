@@ -50,7 +50,6 @@ GLuint p,v,f;
 mat4 proj_matrix;
 mat4 view_matrix;
 mat4 mvp_matrix;
-//float mvpMatrix[16];
 float rotMatrix[9];
 
 
