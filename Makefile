@@ -20,13 +20,28 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-CC=gcc -std=gnu99
-CFLAGS=-g -Wall -Werror -O3 -c -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE -D_DEBUG
-LDFLAGS=-L/usr/local/lib -lSDLmain -lSDL2 -Wl,-framework,Cocoa -framework GLUT -framework OpenGL
-EXECUTABLE=demo
-SOURCES=main.c 3dmath.c shader.c text.c object.c plyfile.c logger.c config.c bmp.c
-HEADERS=$(SOURCES:%.c=%.h)
-OBJECTS=$(EXECUTABLES:%.c=%.o) $(SOURCES:%.c=%.o) 
+ifeq ($(OS),Windows_NT)
+    echo "???"
+else
+    CC=gcc -std=gnu99
+    EXECUTABLE=demo
+    SOURCES=main.c 3dmath.c shader.c text.c object.c plyfile.c logger.c config.c bmp.c
+    HEADERS=$(SOURCES:%.c=%.h)
+    OBJECTS=$(EXECUTABLES:%.c=%.o) $(SOURCES:%.c=%.o) 
+    UNAME_S := $(shell uname -s)
+
+    CFLAGS_ALL=-g -Wall -Werror -O3 -c
+    LDFLAGS_ALL=-L/usr/local/lib -lSDLmain -lSDL2
+
+    ifeq ($(UNAME_S),Darwin)
+        CFLAGS=$(CFLAGS_ALL) -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE -D_DEBUG
+        LDFLAGS=$(LDFLAGS_ALL) -Wl,-framework,Cocoa -framework GLUT -framework OpenGL
+    endif
+    ifeq ($(UNAME_S),Linux)
+        CFLAGS=$(CFLAGS_ALL)
+        LDFLAGS=$(LDFLAGS_ALL) -lGL
+    endif
+endif
 
 all: bin/$(EXECUTABLE)
 
