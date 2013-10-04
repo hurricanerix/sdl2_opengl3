@@ -24,13 +24,15 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef GL3_PROTOTYPES
-#define GL3_PROTOTYPES 1
-#endif
+//#ifndef GL3_PROTOTYPES
+//#define GL3_PROTOTYPES 1
+//#endif
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
 #else
-#include <GL/gl3.h>
+#define GL_GLEXT_PROTOTYPES 1
+#include <GL/gl.h>
+#include <GL/glext.h>
 #endif
 #include <SDL2/SDL.h>
 
@@ -99,10 +101,6 @@ int main(int argc, char *argv[])
     if (argc < 2) {
         print_help(argv[0]);
         exit(1);
-    }
-    FILE *debug_out = NULL;
-    if (argc == 3) {
-        debug_out = stderr;
     }
 
     init_logger(stderr);

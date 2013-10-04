@@ -158,6 +158,7 @@ Config *get_config(char *filename)
                 float y = 0.0;
                 float z = 0.0;
                 float w = 0.0;
+                etype = UNIFORM_UNKNOWN;
 
                 if (strncmp(type, "int", sizeof("int")) == 0) {
                     etype = UNIFORM_INT;

@@ -30,15 +30,15 @@ else
     OBJECTS=$(EXECUTABLES:%.c=%.o) $(SOURCES:%.c=%.o) 
     UNAME_S := $(shell uname -s)
 
-    CFLAGS_ALL=-g -Wall -Werror -O3 -c
-    LDFLAGS_ALL=-L/usr/local/lib -lSDLmain -lSDL2
+    CFLAGS_ALL=-g -Wall -Werror -O3 -c `sdl2-config --cflags`
+    LDFLAGS_ALL=-L/usr/local/lib -lm `sdl2-config --libs`
 
     ifeq ($(UNAME_S),Darwin)
-        CFLAGS=$(CFLAGS_ALL) -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE -D_DEBUG
+        CFLAGS=$(CFLAGS_ALL) -I/usr/include/GL/gl.h -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE -D_DEBUG
         LDFLAGS=$(LDFLAGS_ALL) -Wl,-framework,Cocoa -framework GLUT -framework OpenGL
     endif
     ifeq ($(UNAME_S),Linux)
-        CFLAGS=$(CFLAGS_ALL)
+        CFLAGS=$(CFLAGS_ALL) -I/usr/include
         LDFLAGS=$(LDFLAGS_ALL) -lGL
     endif
 endif
@@ -47,11 +47,11 @@ all: bin/$(EXECUTABLE)
 
 bin/$(EXECUTABLE): $(OBJECTS:%.o=obj/%.o)
 	@echo "INFO: Linking '$@'..."
-	@$(CC) $(LDFLAGS) $(SOURCES:%.c=obj/%.o) -o bin/$(EXECUTABLE)
+	$(CC) $(SOURCES:%.c=obj/%.o) $(LDFLAGS) -o bin/$(EXECUTABLE)
 
 $(OBJECTS:%.o=obj/%.o): $(SOURCES:%.c=src/%.c) $(HEADERS:%.h=src/%.h)
 	@echo "INFO: Compiling '$(@:obj/%.o=src/%.c)' to '$@'..."
-	@$(CC) $(CFLAGS) $(@:obj/%.o=src/%.c) -o $@
+	$(CC) $(CFLAGS) $(@:obj/%.o=src/%.c) -o $@
 
 clean:
 	@echo "INFO: Cleaning workspace..."

@@ -24,12 +24,14 @@
 #include <assert.h>
 #include <stdio.h> 
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <math.h>
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
 #else
-#include <GL/gl3.h>
+#define GL_GLEXT_PROTOTYPES 1
+#include <GL/gl.h>
+#include <GL/glext.h>
 #endif
 
 #include "logger.h"
@@ -191,14 +193,14 @@ void read_object(char *file_name)
     float version;
     int nprops;
     int num_elems;
-    PlyProperty **plist;
+    //PlyProperty **plist;
     Vertex **vlist;
     Face **flist;
     char *elem_name;
-    int num_comments;
-    char **comments;
-    int num_obj_info;
-    char **obj_info;
+    //int num_comments;
+    //char **comments;
+    //int num_obj_info;
+    //char **obj_info;
 
     // open a PLY file for reading 
     ply = ply_open_for_reading(file_name, &nelems, &elist, &file_type, &version);
@@ -211,7 +213,8 @@ void read_object(char *file_name)
     for (i = 0; i < nelems; i++) {
         // get the description of the first element 
         elem_name = elist[i];
-        plist = ply_get_element_description (ply, elem_name, &num_elems, &nprops);
+        //plist = ply_get_element_description (ply, elem_name, &num_elems, &nprops);
+        ply_get_element_description (ply, elem_name, &num_elems, &nprops);
 
         // print the name of the element, for debugging 
 
@@ -350,14 +353,14 @@ void read_object(char *file_name)
         }
 
         // grab and print out the comments in the file 
-        comments = ply_get_comments (ply, &num_comments);
-        for (i = 0; i < num_comments; i++) {
-        }
+        //comments = ply_get_comments (ply, &num_comments);
+        //for (i = 0; i < num_comments; i++) {
+        //}
 
         // grab and print out the object information 
-        obj_info = ply_get_obj_info (ply, &num_obj_info);
-        for (i = 0; i < num_obj_info; i++) {
-        }
+        //obj_info = ply_get_obj_info (ply, &num_obj_info);
+        // for (i = 0; i < num_obj_info; i++) {
+        //}
 
         ply_close(ply);
 }

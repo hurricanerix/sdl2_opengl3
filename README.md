@@ -5,6 +5,21 @@ addition it should also be useful for experimenting with shader development.
 
 ![Alt text](https://github.com/hurricanerix/sdl2_opengl3/raw/master/resources/screenshot.png "Screenshot")
 
+Installation
+------------
+
+OSX
+---
+
+
+
+Ubuntu
+------
+sudo apt-get install freeglut3 build-essential libgl1-mesa-dev mesa-common-dev xorg-dev libudev-dev libts-dev libgl1-mesa-dev libglu1-mesa-dev libasound2-dev libpulse-dev libopenal-dev libogg-dev libvorbis-dev libaudiofile-dev libpng12-dev libfreetype6-dev libusb-dev libdbus-1-dev zlib1g-dev libdirectfb-dev
+
+Get SDL2, make and install
+http://www.libsdl.org/hg.php
+
 
 Exporting Objects from Blender
 ------------------------------

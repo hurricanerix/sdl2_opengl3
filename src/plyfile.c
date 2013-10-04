@@ -155,7 +155,7 @@ PlyFile *ply_read(FILE *fp, int *nelems, char ***elem_names)
     PlyFile *plyfile;
     int nwords;
     char **words;
-    int found_format = 0;
+    //int found_format = 0;
     char **elist;
     PlyElement *elem;
     char *orig_line;
@@ -191,7 +191,7 @@ PlyFile *ply_read(FILE *fp, int *nelems, char ***elem_names)
                 return (NULL);
             }
             plyfile->version = atof (words[2]);
-            found_format = 1;
+            //found_format = 1;
         } else if (strncmp(words[0], "element", sizeof("element")) == 0) {
             add_element (plyfile, words, nwords);
         } else if (strncmp(words[0], "property", sizeof("property")) == 0) {
@@ -559,6 +559,7 @@ void ascii_get_element(PlyFile *plyfile, char *elem_ptr)
     char *orig_line;
     char *other_data;
     int other_flag;
+    other_data = NULL;
 
     // the kind of element we're reading currently
     elem = plyfile->which_elem;

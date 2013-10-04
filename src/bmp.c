@@ -77,7 +77,9 @@ void load_bmp(char *imagepath, int *width, int *height, unsigned char **data)
     assert(data != NULL);
 
     // Read the actual data from the file into the buffer
-    fread(*data, 1, imageSize, file);
+    if (fread(*data, 1, imageSize, file) == 0) {
+        fprintf(stderr, "ERROR BMP\n");
+    }
 
     //Everything is in memory now, the file can be closed
     fclose(file);

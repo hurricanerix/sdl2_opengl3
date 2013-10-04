@@ -48,12 +48,13 @@ void _log_message(char *type, char *file, int line, char *msg, ...)
     assert(msg != NULL);
 
     va_list arg;
-    int done;
+    //int done;
 
     va_start (arg, msg);
     fprintf(log_fp, "%s %d %s %d: ", type, (int)time(NULL), file, line);
 
-    done = vfprintf (log_fp, msg, arg);
+    //done = vfprintf (log_fp, msg, arg);
+    vfprintf (log_fp, msg, arg);
     fprintf(log_fp, "\n");
     va_end (arg);
 }
