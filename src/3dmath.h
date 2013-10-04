@@ -24,9 +24,40 @@
 #ifndef __3D_MATH_H__
 #define __3D_MATH_H__
 
+typedef struct vec2 {
+    union {float x; float s;};
+    union {float y; float t;};
+} vec2;
+
+typedef struct vec3 {
+    union {float x; float r; float s;};
+    union {float y; float g; float t;};
+    union {float z; float b;};
+} vec3;
+
+typedef struct vec4 {
+    union {float x; float r; float s;};
+    union {float y; float g; float t;};
+    union {float z; float b;};
+    union {float w; float a;};
+} vec4;
+
+typedef struct mat3 {
+    vec3 row1;
+    vec3 row2;
+    vec3 row3;
+} mat3;
+
+typedef struct mat4 {
+    vec4 row1;
+    vec4 row2;
+    vec4 row3;
+    vec4 row4;
+} mat4;
+
+void print_mat4(char *label, mat4 m);
 void print_matrix(char *label, float *mat, int size);
 void get_rot_matrix(float *m, float x, float y, float z);
-
 void copy_matrix(float *a, float *b);
 void crossProduct( float *a, float *b, float *res);
 void normalize(float *a);
@@ -36,6 +67,7 @@ void setTranslationMatrix(float *mat, float x, float y, float z);
 void buildProjectionMatrix(float *projMatrix, float fov, float ratio, float nearP, float farP);
 void setCamera(float *viewMatrix, float posX, float posY, float posZ,
                float lookAtX, float lookAtY, float lookAtZ);
+
 void get_sl_tangent(
     float pAx, float pAy, float pAz,
     float tAx, float tAy,
@@ -44,5 +76,13 @@ void get_sl_tangent(
     float pCx, float pCy, float pCz,
     float tCx, float tCy,
     float *tx, float *ty, float *tz);
+
+mat4 get_identity_mat4();
+mat4 mult_mat4(mat4 a, mat4 b);
+mat4 get_translation_mat4(float x, float y, float z);
+mat4 get_view_matrix(float posX, float posY, float posZ,
+               float lookAtX, float lookAtY, float lookAtZ); // setCamera replacement
+mat4 get_projection_matrix(float fov, float ratio,
+    float nearP, float farP);
 
 #endif//__3D_MATH_H__

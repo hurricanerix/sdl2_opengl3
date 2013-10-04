@@ -47,10 +47,12 @@ SDL_Window* display_window;
 SDL_Renderer* display_renderer;
 
 GLuint p,v,f;
-float projMatrix[16];
-float viewMatrix[16];
-float mvpMatrix[16];
+mat4 proj_matrix;
+mat4 view_matrix;
+mat4 mvp_matrix;
+//float mvpMatrix[16];
 float rotMatrix[9];
+
 
 void render_scene();
 void setup_textures(Config *config);
@@ -173,9 +175,7 @@ int main(int argc, char *argv[])
 
 void render_scene(Config *config)
 {
-    copy_matrix(mvpMatrix, projMatrix);
-    multMatrix(mvpMatrix, viewMatrix);
-    print_matrix("model view projection matrix", mvpMatrix, 4);
+    mvp_matrix = mult_mat4(proj_matrix, view_matrix);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     static float x, y, z;
@@ -184,25 +184,20 @@ void render_scene(Config *config)
     z += 0.01;
 
     get_rot_matrix(rotMatrix, x, y, z);
-    print_matrix("rotation matrix", rotMatrix, 3);
 
-    //setCamera(viewMatrix, 10, 2, 10, 0, 2, -5);
-    setCamera(viewMatrix, 5, 5, 0, 0, 0, 0);
-    print_matrix("view matrix", viewMatrix, 4);
+    view_matrix = get_view_matrix(5, 5, 0, 0, 0, 0);
+
     glUseProgram(p);
     set_uniforms(config);
 
     render_object();
 
     SDL_GL_SwapWindow(display_window);
-
 }
 
 void cleanup(Config *config)
 {
-
     destroy_config(config);
-
 }
 
 void process_keys(unsigned char key, int x, int y)
@@ -220,10 +215,9 @@ void process_keys(unsigned char key, int x, int y)
 
 void set_uniforms(Config *config)
 {
-
     // must be called after glUseProgram
-    glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, mvpMatrix);
-    glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, viewMatrix);
+    glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, (float *)&mvp_matrix);
+    glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, (float *)&view_matrix);
     glUniformMatrix3fv(rotMatrixLoc,  1, GL_FALSE, rotMatrix);
 
     for (int i = 0; i < config->vert_uniform_count; i++) {
@@ -244,15 +238,17 @@ void change_size(int w, int h)
     float ratio;
     // Prevent a divide by zero, when window is too short
     // (you cant make a window of zero width).
-    if(h == 0)
+    if(h == 0) {
         h = 1;
+    }
 
     // Set the viewport to be the entire window
     glViewport(0, 0, w, h);
 
     ratio = (1.0f * w) / h;
-    buildProjectionMatrix(projMatrix, 53.13f, ratio, 1.0f, 30.0f);
-    print_matrix("projection matrix", projMatrix, 4);
+
+    proj_matrix = get_projection_matrix(53.13f, ratio, 1.0f, 30.0f);
+    print_mat4("new projection matrix", proj_matrix);
 }
 
 void setup_textures(Config *config)

@@ -30,6 +30,38 @@
 #include "logger.h"
 
 
+void print_vec3(char *label, vec3 v)
+{
+    if (label != NULL) {
+        printf("vec3 %s\n", label);
+    }
+
+    printf("%f,\t%f,\t%f\n", v.x, v.y, v.z);
+}
+
+void print_vec4(char *label, vec4 v)
+{
+    if (label != NULL) {
+        printf("vec4 %s\n", label);
+    }
+
+    printf("%f,\t%f,\t%f,\t%f\n", v.x, v.y, v.z, v.w);
+}
+
+void print_mat4(char *label, mat4 m)
+{
+    if (label != NULL) {
+        printf("mat4 %s\n", label);
+    }
+
+    printf("[\n");
+    print_vec4(NULL, m.row1);
+    print_vec4(NULL, m.row2);
+    print_vec4(NULL, m.row3);
+    print_vec4(NULL, m.row4);
+    printf("]\n");
+}
+
 void print_matrix(char *label, float *mat, int size)
 {
     assert(mat != NULL);
@@ -44,7 +76,6 @@ void print_matrix(char *label, float *mat, int size)
         printf("]\n");
     }
 }
-
 
 void get_rot_matrix(float *m, float x, float y, float z)
 {
@@ -85,6 +116,17 @@ void crossProduct(float *a, float *b, float *res)
 
 }
 
+vec3 cross_product(vec3 a, vec3 b)
+{
+    vec3 res;
+
+    res.x = a.y * b.z  -  b.y * a.z;
+    res.y = a.z * b.x  -  b.z * a.x;
+    res.z = a.x * b.y  -  b.x * a.y;
+
+    return res;
+}
+
 // Normalize a vec3
 void normalize(float *a)
 {
@@ -95,7 +137,24 @@ void normalize(float *a)
     a[0] /= mag;
     a[1] /= mag;
     a[2] /= mag;
+}
 
+vec3 normalize2(vec3 m)
+{
+    float mag = sqrt(m.x * m.x  +  m.y * m.y  +  m.z * m.z);
+
+    if (mag == 0) {
+        m.x = 0.0;
+        m.y = 0.0;
+        m.z = 0.0;
+        return m;
+    }
+
+    m.x /= mag;
+    m.y /= mag;
+    m.z /= mag;
+
+    return m;
 }
 
 // ----------------------------------------------------
@@ -176,6 +235,63 @@ void buildProjectionMatrix(float *projMatrix, float fov, float ratio,
     projMatrix[3 * 4 + 2] = (2.0f * farP * nearP) / (nearP - farP);
     projMatrix[2 * 4 + 3] = -1.0f;
     projMatrix[3 * 4 + 3] = 0.0f;
+
+    print_matrix("TEST", projMatrix, 4);
+}
+
+mat4 get_projection_matrix(float fov, float ratio,
+    float nearP, float farP)
+{
+    float f = 1.0f / tan (fov * (M_PI / 360.0));
+
+    mat4 proj_matrix = get_identity_mat4();
+
+    proj_matrix.row1.x = f / ratio;
+    proj_matrix.row2.y = f;
+    proj_matrix.row3.z = (farP + nearP) / (nearP - farP);
+    proj_matrix.row4.z = (2.0f * farP * nearP) / (nearP - farP);
+    proj_matrix.row3.w = -1.0f;
+    proj_matrix.row4.w = 0.0f;
+
+    return proj_matrix;
+}
+
+mat4 get_identity_mat4()
+{
+    mat4 m = {.row1={{.x=1.0}, {.y=0.0}, {.z=0.0}, {.w=0.0}},
+              .row2={{.x=0.0}, {.y=1.0}, {.z=0.0}, {.w=0.0}},
+              .row3={{.x=0.0}, {.y=0.0}, {.z=1.0}, {.w=0.0}},
+              .row4={{.x=0.0}, {.y=0.0}, {.z=0.0}, {.w=1.0}}};
+    return m;
+}
+
+mat4 mult_mat4(mat4 a, mat4 b)
+{
+    mat4 res;
+    float *pr = (float *)&res;
+    float *pa = (float *)&a;
+    float *pb = (float *)&b;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            pr[j*4 + i] = 0.0f;
+            for (int k = 0; k < 4; ++k) {
+                pr[j*4 + i] += pa[k*4 + i] * pb[j*4 + k];
+            }
+        }
+    }
+    memcpy(pa, pr, 16 * sizeof(float));
+
+    return res;
+}
+
+mat4 get_translation_mat4(float x, float y, float z)
+{
+    mat4 m = get_identity_mat4();
+    m.row4.x = x;
+    m.row4.y = y;
+    m.row4.z = z;
+
+    return m;
 }
 
 // ----------------------------------------------------
@@ -185,18 +301,26 @@ void buildProjectionMatrix(float *projMatrix, float fov, float ratio,
 // i.e. a vertical up vector (remmeber gluLookAt?)
 //
 
+void print_float3(char *label, float *a)
+{
+    printf("float3 %s\n", label);
+    for (int i = 0; i < 3; i++){
+        printf("%f, ", a[i]);
+    }
+    printf("\n");
+}
+
 void setCamera(float *viewMatrix, float posX, float posY, float posZ,
     float lookAtX, float lookAtY, float lookAtZ)
 {
     assert(viewMatrix != NULL);
 
     float dir[3], right[3], up[3];
-
     up[0] = 0.0f;   up[1] = 1.0f;   up[2] = 0.0f;
-
     dir[0] =  (lookAtX - posX);
     dir[1] =  (lookAtY - posY);
     dir[2] =  (lookAtZ - posZ);
+
     normalize(dir);
 
     crossProduct(dir,up,right);
@@ -230,6 +354,48 @@ void setCamera(float *viewMatrix, float posX, float posY, float posZ,
     setTranslationMatrix(aux, -posX, -posY, -posZ);
 
     multMatrix(viewMatrix, aux);
+}
+
+mat4 get_view_matrix(float posX, float posY, float posZ,
+    float lookAtX, float lookAtY, float lookAtZ)
+{
+    vec3 dir = {{.x=lookAtX - posX}, {.y=lookAtY - posY}, {.z=lookAtZ-posZ}};
+    vec3 right = {{.x=0.0}, {.y=0.0}, {.z=0.0}};
+    vec3 up = {{.x=0.0}, {.y=1.0}, {.z=0.0}};
+
+    dir = normalize2(dir);
+
+    right = cross_product(dir, up);
+    right = normalize2(right);
+
+    up = cross_product(right, dir);
+    up = normalize2(up);
+
+    mat4 view_matrix;
+    view_matrix.row1.x = right.x;
+    view_matrix.row2.x = right.y;
+    view_matrix.row3.x = right.z;
+    view_matrix.row4.x = 0.0f;
+
+    view_matrix.row1.y = up.x;
+    view_matrix.row2.y = up.y;
+    view_matrix.row3.y = up.z;
+    view_matrix.row3.y = 0.0f;
+
+    view_matrix.row1.z = -dir.x;
+    view_matrix.row2.z = -dir.y;
+    view_matrix.row3.z = -dir.z;
+    view_matrix.row4.z = 0.0f;
+
+    view_matrix.row1.w = 0.0f;
+    view_matrix.row2.w = 0.0f;
+    view_matrix.row3.w = 0.0f;
+    view_matrix.row4.w = 1.0f;
+
+    mat4 aux = get_translation_mat4(-posX, -posY, -posZ);
+    view_matrix = mult_mat4(view_matrix, aux);
+
+    return view_matrix;
 }
 
 // Get Surface Local Tangent
