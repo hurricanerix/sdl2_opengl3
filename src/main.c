@@ -52,7 +52,7 @@ GLuint p,v,f;
 mat4 proj_matrix;
 mat4 view_matrix;
 mat4 mvp_matrix;
-float rotMatrix[9];
+mat3 rotation_matrix;
 
 
 void render_scene();
@@ -175,14 +175,16 @@ void render_scene(Config *config)
     mvp_matrix = mult_mat4(proj_matrix, view_matrix);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    static float x, y, z;
-    x += 0.02;
-    y += 0.05;
-    z += 0.01;
+    static vec3 rotation;
+    rotation.x += 0.02;
+    rotation.y += 0.05;
+    rotation.z += 0.01;
 
-    get_rot_matrix(rotMatrix, x, y, z);
+    rotation_matrix = get_rotation_matrix(rotation);
 
-    view_matrix = get_view_matrix(5, 5, 0, 0, 0, 0);
+    vec3 pos = {{.x=5}, {.y=5}, {.z=0}};
+    vec3 lookAt = {{.x=0}, {.y=0}, {.z=0}};
+    view_matrix = get_view_matrix(pos, lookAt);
 
     glUseProgram(p);
     set_uniforms(config);
@@ -215,7 +217,7 @@ void set_uniforms(Config *config)
     // must be called after glUseProgram
     glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, (float *)&mvp_matrix);
     glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, (float *)&view_matrix);
-    glUniformMatrix3fv(rotMatrixLoc,  1, GL_FALSE, rotMatrix);
+    glUniformMatrix3fv(rotMatrixLoc,  1, GL_FALSE, (float *)&rotation_matrix);
 
     for (int i = 0; i < config->vert_uniform_count; i++) {
         set_uniform(p, &(config->vert_uniforms[i]));

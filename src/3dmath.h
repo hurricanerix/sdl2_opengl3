@@ -55,24 +55,23 @@ typedef struct mat4 {
     vec4 row4;
 } mat4;
 
+void print_vec2(char *label, vec2 v);
+void print_vec3(char *label, vec3 v);
+void print_vec4(char *label, vec4 v);
+void print_mat3(char *label, mat3 m);
 void print_mat4(char *label, mat4 m);
-void get_rot_matrix(float *m, float x, float y, float z);
 
-void get_sl_tangent(
-    float pAx, float pAy, float pAz,
-    float tAx, float tAy,
-    float pBx, float pBy, float pBz,
-    float tBx, float tBy,
-    float pCx, float pCy, float pCz,
-    float tCx, float tCy,
-    float *tx, float *ty, float *tz);
+mat3 get_rotation_matrix(vec3 rotation);
+
+vec3 get_surface_local_tangent(
+        vec3 p1, vec2 t1, vec3 p2, vec2 t2, vec3 p3, vec2 t3);
 
 mat4 get_identity_mat4();
 mat4 mult_mat4(mat4 a, mat4 b);
-mat4 get_translation_mat4(float x, float y, float z);
-mat4 get_view_matrix(float posX, float posY, float posZ,
-               float lookAtX, float lookAtY, float lookAtZ); // setCamera replacement
+mat4 get_translation_mat4(vec3 v);
+mat4 get_view_matrix(vec3 pos, vec3 lookAt);
 mat4 get_projection_matrix(float fov, float ratio,
     float nearP, float farP);
+mat3 get_rotation_matrix(vec3 dir);
 
 #endif//__3D_MATH_H__

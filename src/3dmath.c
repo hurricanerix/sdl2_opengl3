@@ -30,6 +30,15 @@
 #include "logger.h"
 
 
+void print_vec2(char *label, vec2 v)
+{
+    if (label != NULL) {
+        printf("vec2 %s\n", label);
+    }
+
+    printf("%f,\t%f\n", v.x, v.y);
+}
+
 void print_vec3(char *label, vec3 v)
 {
     if (label != NULL) {
@@ -62,26 +71,27 @@ void print_mat4(char *label, mat4 m)
     printf("]\n");
 }
 
-void get_rot_matrix(float *m, float x, float y, float z)
+mat3 get_rotation_matrix(vec3 dir)
 {
-    assert(m != NULL);
+    float c1 = cos(dir.x);
+    float c2 = cos(dir.y);
+    float c3 = cos(dir.z);
+    float s1 = sin(dir.x);
+    float s2 = sin(dir.y);
+    float s3 = sin(dir.z);
 
-    float c1 = cos(x);
-    float c2 = cos(y);
-    float c3 = cos(z);
-    float s1 = sin(x);
-    float s2 = sin(y);
-    float s3 = sin(z);
+    mat3 m;
+    m.row1.x = c2 * c3;
+    m.row1.y = -c2 * s3;
+    m.row1.z = s2;
+    m.row2.x = (c1 * s3) + (c3 * s1 * s2);
+    m.row2.y = (c1 * c3) - (s1 * s2 * s3);
+    m.row2.z = -c2 * s1;
+    m.row3.x = (s1 * s3) - (c1 * c3 * s2);
+    m.row3.y = (c3 * s1) + (c1 * s2 * s3);
+    m.row3.z = c1 * c2;
 
-    m[0] = c2 * c3;
-    m[1] = -c2 * s3;
-    m[2] = s2;
-    m[3] = (c1 * s3) + (c3 * s1 * s2);
-    m[4] = (c1 * c3) - (s1 * s2 * s3);
-    m[5] = -c2 * s1;
-    m[6] = (s1 * s3) - (c1 * c3 * s2);
-    m[7] = (c3 * s1) + (c1 * s2 * s3);
-    m[8] = c1 * c2;
+    return m;
 }
 
 // ----------------------------------------------------
@@ -180,15 +190,16 @@ mat4 mult_mat4(mat4 a, mat4 b)
     return res;
 }
 
-mat4 get_translation_mat4(float x, float y, float z)
+mat4 get_translation_mat4(vec3 v)
 {
     mat4 m = get_identity_mat4();
-    m.row4.x = x;
-    m.row4.y = y;
-    m.row4.z = z;
+    m.row4.x = v.x;
+    m.row4.y = v.y;
+    m.row4.z = v.z;
 
     return m;
 }
+
 
 // ----------------------------------------------------
 // View Matrix
@@ -198,10 +209,9 @@ mat4 get_translation_mat4(float x, float y, float z)
 //
 
 
-mat4 get_view_matrix(float posX, float posY, float posZ,
-    float lookAtX, float lookAtY, float lookAtZ)
+mat4 get_view_matrix(vec3 pos, vec3 lookAt)
 {
-    vec3 dir = {{.x=lookAtX - posX}, {.y=lookAtY - posY}, {.z=lookAtZ-posZ}};
+    vec3 dir = {{.x=lookAt.x - pos.x}, {.y=lookAt.y - pos.y}, {.z=lookAt.z-pos.z}};
     vec3 right = {{.x=0.0}, {.y=0.0}, {.z=0.0}};
     vec3 up = {{.x=0.0}, {.y=1.0}, {.z=0.0}};
 
@@ -234,60 +244,59 @@ mat4 get_view_matrix(float posX, float posY, float posZ,
     view_matrix.row3.w = 0.0f;
     view_matrix.row4.w = 1.0f;
 
-    mat4 aux = get_translation_mat4(-posX, -posY, -posZ);
+    pos.x *= -1;
+    pos.y *= -1;
+    pos.z *= -1;
+    mat4 aux = get_translation_mat4(pos);
     view_matrix = mult_mat4(view_matrix, aux);
 
     return view_matrix;
 }
 
 // Get Surface Local Tangent
-void get_sl_tangent(
-    float pAx, float pAy, float pAz,
-    float tAx, float tAy,
-    float pBx, float pBy, float pBz,
-    float tBx, float tBy,
-    float pCx, float pCy, float pCz,
-    float tCx, float tCy,
-    float *tx, float *ty, float *tz)
+vec3 get_surface_local_tangent(
+        vec3 p1, vec2 t1, vec3 p2, vec2 t2, vec3 p3, vec2 t3)
 {
     // Calculates the vector of the texture coordinates edges, the distance between them.
-    float tdistBAx, tdistBAy;
-    tdistBAx = tBx - tAx;
-    tdistBAy = tBy - tAy;
+    vec2 tdistBA;
+    tdistBA.x = t2.x - t1.x;
+    tdistBA.y = t2.y - t1.y;
 
-    float tdistCAx, tdistCAy;
-    tdistCAx = tCx - tAx;
-    tdistCAy = tCy - tAy;
+    vec2 tdistCA;
+    tdistCA.x = t3.x - t1.x;
+    tdistCA.y = t3.y - t1.y;
 
     // Calculates the triangle's area.
     float area;
-    area = tdistBAx * tdistCAy - tdistBAy * tdistCAx;
+    area = tdistBA.x * tdistCA.y - tdistBA.y * tdistCA.x;
 
     //  Tangent
+    vec3 t;
     if (area == 0.0f) {
-        *tx = 0.0;
-        *ty = 0.0;
-        *tz = 0.0;
+        t.x = 0.0;
+        t.y = 0.0;
+        t.z = 0.0;
     } else {
         float delta = 1.0f / area;
-        float distBAx, distBAy, distBAz;
-        distBAx = pBx - pAx;
-        distBAy = pBy - pAy;
-        distBAz = pBz - pAz;
+        vec3 distBA;
+        distBA.x = p2.x - p1.x;
+        distBA.y = p2.y - p1.y;
+        distBA.z = p2.z - p1.z;
 
-        float distCAx, distCAy, distCAz;
-        distCAx = pCx - pAx;
-        distCAy = pCy - pAy;
-        distCAz = pCz - pAz;
+        vec3 distCA;
+        distCA.x = p3.x - p1.x;
+        distCA.y = p3.y - p1.y;
+        distCA.z = p3.z - p1.z;
 
         // Calculates the face tangent to the current triangle.
-        *tx = delta * ((distBAx * tdistCAy) + (distCAx * -tdistBAy));
-        *ty = delta * ((distBAy * tdistCAy) + (distCAy * -tdistBAy));
-        *tz = delta * ((distBAz * tdistCAy) + (distCAz * -tdistBAy));
+        t.x = delta * ((distBA.x * tdistCA.y) + (distCA.x * -tdistBA.y));
+        t.y = delta * ((distBA.y * tdistCA.y) + (distCA.y * -tdistBA.y));
+        t.z = delta * ((distBA.z * tdistCA.y) + (distCA.z * -tdistBA.y));
     }
 
     // Averages the new tagent vector with the oldest buffered.
     //tangentBuffer[i1] = vec3Add(tangent, tangentBuffer[i1]);
     //tangentBuffer[i2] = vec3Add(tangent, tangentBuffer[i2]);
     //tangentBuffer[i3] = vec3Add(tangent, tangentBuffer[i3]);
+    return t;
 }

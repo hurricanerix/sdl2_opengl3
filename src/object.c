@@ -276,7 +276,7 @@ void read_object(char *file_name)
             ply_get_property (ply, elem_name, &face_props[1]);
 
             // grab all the face elements 
-            int current_tan = 0;
+            //int current_tan = 0;
             for (j = 0; j < num_elems; j++) {
                 // grab and element from the file 
                 flist[j] = (Face *) malloc (sizeof (Face));
@@ -308,10 +308,9 @@ void read_object(char *file_name)
                 float pCz = vertices[faces[z] + 2];
                 float tCx = tex_coords[faces[z]];
                 float tCy = tex_coords[faces[z] + 1];
-                printf("FACE\n");
 
                 for (k = 0; k < 3; k++) {
-                    printf("VERT %d %d %d\n", k*3, k*3+1, k*3+2);
+                    /*printf("VERT %d %d %d\n", k*3, k*3+1, k*3+2);
                     get_sl_tangent(
                         pAx, pAy, pAz, tAx, tAy,
                         pBx, pBy, pBz, tBx, tBy,
@@ -319,7 +318,7 @@ void read_object(char *file_name)
                         &(tangents[current_tan]),
                         &(tangents[current_tan + 1]),
                         &(tangents[current_tan + 2]));
-                    current_tan += 2;
+                    current_tan += 2;*/
 
                 // swap around
                 float tmpx, tmpy, tmpz;
