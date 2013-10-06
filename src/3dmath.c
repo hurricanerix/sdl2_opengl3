@@ -21,13 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <assert.h>
-#include <math.h>
-#include <memory.h>
-#include <stdio.h>
-
-#include "3dmath.h"
-#include "logger.h"
+#include "includes.h"
 
 
 void print_vec2(char *label, vec2 v)
@@ -55,6 +49,19 @@ void print_vec4(char *label, vec4 v)
     }
 
     printf("%f,\t%f,\t%f,\t%f\n", v.x, v.y, v.z, v.w);
+}
+
+void print_mat3(char *label, mat3 m)
+{
+    if (label != NULL) {
+        printf("mat3 %s\n", label);
+    }
+
+    printf("[\n");
+    print_vec3(NULL, m.row1);
+    print_vec3(NULL, m.row2);
+    print_vec3(NULL, m.row3);
+    printf("]\n");
 }
 
 void print_mat4(char *label, mat4 m)

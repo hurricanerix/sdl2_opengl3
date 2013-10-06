@@ -21,51 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "includes.h"
+#ifndef __INCLUDES_H__
+#define __INCLUDES_H__
 
+#include <assert.h>
+#ifdef __APPLE__
+  #ifndef GL3_PROTOTYPES
+    #define GL3_PROTOTYPES 1
+  #endif
+  #include <OpenGL/gl3.h>
+#else
+  #ifndef GL_GLEXT_PROTOTYPES
+    #define GL_GLEXT_PROTOTYPES 1
+  #endif
+  #include <GL/gl.h>
+  #include <GL/glext.h>
+#endif
+#include <SDL2/SDL.h>
 
-void print_help(char *command);
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
+#include "3dmath.h"
+#include "app.h"
+#include "config.h"
+#include "logger.h"
+#include "main.h"
+#include "object.h"
+#include "plyfile.h"
+#include "shader.h"
+#include "status.h"
+#include "text.h"
 
-int main(int argc, char *argv[])
-{
-    if (argc < 2) {
-        print_help(argv[0]);
-        exit(1);
-    }
-
-    init_logger(stderr);
-
-    Config config;
-    init_config(&config);
-    load_config(&config, argv[1]);
-    if (config.status.is_error) {
-        fprintf(stderr, "Error: %s\n", config.status.error_msg);
-        return 1;
-    }
-
-    load_app(&config);
-    if (config.status.is_error) {
-        fprintf(stderr, "Error: %s\n", config.status.error_msg);
-        return 1;
-    }
-
-    Status app_status;
-    run_app(&app_status);
-    if (app_status.is_error) {
-        fprintf(stderr, "Error: %s\n", app_status.error_msg);
-        return 1;
-    }
-
-    destroy_app();
-
-    return 0;
-}
-
-void print_help(char *command)
-{
-    assert(command != NULL);
-
-    fprintf(stderr, "%s help:\n", command);
-    fprintf(stderr, "%s <config file>\n\n", command);
-}
+#endif//__INCLUDES_H__

@@ -21,20 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "config.h"
-#include "logger.h"
-#include "main.h"
-#include "text.h"
+#include "includes.h"
 
 
-enum ConfigSections {
-    UNKNOWN_SECTION, APP_SECTION, OBJECT_SECTION,
-    TEXTURES_SECTION, VERT_SECTION, FRAG_SECTION};
+#define CONFIG_DEFAULT_VERT_UNIFORM_COUNT (0)
+#define CONFIG_DEFAULT_FRAG_UNIFORM_COUNT (0)
+#define CONFIG_DEFAULT_TEXTURE_COUNT (0)
 
 #define SECTION_START_TOKEN ('[')
 #define SECTION_END_TOKEN (']')
@@ -43,30 +35,55 @@ enum ConfigSections {
 #define SPACE_TOKEN (' ')
 #define EMPTY_LINE_TOKEN ('\0')
 
+enum ConfigSections {
+    UNKNOWN_SECTION, APP_SECTION, OBJECT_SECTION,
+    TEXTURES_SECTION, VERT_SECTION, FRAG_SECTION};
 
-Config *get_config(char *filename)
+void _set_config_defaults(Config *c);
+void _init_app_config(AppConfig *c);
+void _destroy_app_config(AppConfig *c);
+void _set_app_config_defaults(AppConfig *c);
+void _init_object_config(ObjectConfig *c);
+void _destroy_object_config(ObjectConfig *c);
+void _set_object_config_defaults(ObjectConfig *c);
+void _init_texture_config(TextureConfig *c);
+void _destroy_texture_config(TextureConfig *c);
+void _set_texture_config_defaults(TextureConfig *c);
+void _init_uniform_config(UniformConfig *c);
+void _destroy_uniform_config(UniformConfig *c);
+void _set_uniform_config_defaults(UniformConfig *c);
+
+
+void init_config(Config *c)
 {
+    assert(c != NULL);
+
+    init_status(&c->status);
+    _init_app_config(&c->app);
+    _init_object_config(&c->object);
+
+    for (int i = 0; i < MAX_TEXTURE_COUNT; i++) {
+        _init_texture_config(&c->textures[i]);
+    }
+    for (int i = 0; i < MAX_UNIFORM_COUNT; i++) {
+        _init_uniform_config(&c->vert_uniforms[i]);
+    }
+
+    for (int i = 0; i < MAX_UNIFORM_COUNT; i++) {
+        _init_uniform_config(&c->frag_uniforms[i]);
+    }
+
+    _set_config_defaults(c);
+}
+
+void load_config(Config *c, char *filename)
+{
+    assert(c != NULL);
     assert(filename != NULL);
-
-    Config *config = malloc(sizeof(Config));
-    assert(config != NULL);
-
-    config->app = malloc(sizeof(AppConfig));
-    assert(config->app != NULL);
-    config->app->object_file = NULL;
-
-    config->object = malloc(sizeof(ObjectConfig));
-    assert(config->object != NULL);
-    config->object->vert_shader_file = NULL;
-    config->object->frag_shader_file = NULL;
-
-    config->vert_uniform_count = 0;
-    config->frag_uniform_count = 0;
-    config->texture_count = 0;
 
     int ini_size;
     char *ini_data = text_file_read(filename, &ini_size);
-    assert(ini_data != NULL);
+    // TODO: test data was read in.
 
     char buffer[MAX_LINE_LEN];
     enum ConfigSections current_section = UNKNOWN_SECTION;
@@ -75,10 +92,11 @@ Config *get_config(char *filename)
     while (get_next_line(ini_data, ini_size, buffer, MAX_LINE_LEN) == TRUE) {
         switch(buffer[0]) {
         case COMMENT_TOKEN:
+            break; // Ignore this.
         case EMPTY_LINE_TOKEN:
+            break; // Ignore this.
         case SPACE_TOKEN:
-            // Ignore these.
-            break;
+            break; // Ignore this.
         case SECTION_START_TOKEN:
             current_section = UNKNOWN_SECTION;
             value = strtok(&buffer[1], "]");
@@ -118,32 +136,26 @@ Config *get_config(char *filename)
 
             if (current_section == APP_SECTION) {
                 if (strncmp(key, "object_file", sizeof("object_file")) == 0) {
-                    config->app->object_file = malloc(MAX_LINE_LEN);
-                    assert(config->app->object_file != NULL);
-                    strncpy(config->app->object_file, value, MAX_LINE_LEN);
+                    strncpy(c->app.object_filename, value, MAX_FILENAME_LEN);
                 }
             }
 
             if (current_section == OBJECT_SECTION) {
                 if (strncmp(key, "vert_shader_file", sizeof("vert_shader_file")) == 0) {
-                    config->object->vert_shader_file = malloc(MAX_LINE_LEN);
-                    assert(config->object->vert_shader_file != NULL);
-                    strncpy(config->object->vert_shader_file, value, MAX_LINE_LEN);
+                    strncpy(c->object.vert_shader_filename, value, MAX_FILENAME_LEN);
                 }
                 else if (strncmp(key, "frag_shader_file", sizeof("frag_shader_file")) == 0) {
-                    config->object->frag_shader_file = malloc(MAX_LINE_LEN);
-                    assert(config->object->frag_shader_file != NULL);
-                    strncpy(config->object->frag_shader_file, value, MAX_LINE_LEN);
+                    strncpy(c->object.frag_shader_filename, value, MAX_FILENAME_LEN);
                 }
             }
 
             if (current_section == TEXTURES_SECTION) {
-                assert(config->texture_count + 1 != MAX_TEXTURE_COUNT);
+                assert(c->texture_count + 1 != MAX_TEXTURE_COUNT);
                 TextureConfig *t;
-                t = &(config->textures[config->texture_count]);
+                t = &(c->textures[c->texture_count]);
                 strncpy(t->name, key, MAX_LINE_LEN);
-                strncpy(t->bmp_file, value, MAX_LINE_LEN);
-                config->texture_count++;
+                strncpy(t->filename, value, MAX_LINE_LEN);
+                c->texture_count++;
             }
 
             if (current_section == VERT_SECTION || current_section == FRAG_SECTION) {
@@ -200,13 +212,13 @@ Config *get_config(char *filename)
 
                 UniformConfig *uconfig;
                 if (current_section == VERT_SECTION) {
-                    assert(config->vert_uniform_count + 1 != MAX_UNIFORM_COUNT);
-                    uconfig = &(config->vert_uniforms[config->vert_uniform_count]);
-                    config->vert_uniform_count++;
+                    assert(c->vert_uniform_count + 1 != MAX_UNIFORM_COUNT);
+                    uconfig = &(c->vert_uniforms[c->vert_uniform_count]);
+                    c->vert_uniform_count++;
                 } else {
-                    assert(config->frag_uniform_count + 1 != MAX_UNIFORM_COUNT);
-                    uconfig = &(config->frag_uniforms[config->frag_uniform_count]);
-                    config->frag_uniform_count++;
+                    assert(c->frag_uniform_count + 1 != MAX_UNIFORM_COUNT);
+                    uconfig = &(c->frag_uniforms[c->frag_uniform_count]);
+                    c->frag_uniform_count++;
                 }
 
                 uconfig->type = etype;
@@ -219,8 +231,36 @@ Config *get_config(char *filename)
             }
         }
     }
+}
 
-    return config;
+void destroy_config(Config *c)
+{
+    if (c == NULL) {
+        return;
+    }
+    _destroy_app_config(&c->app);
+    _destroy_object_config(&c->object);
+    for (int i = 0; i < MAX_TEXTURE_COUNT; i++) {
+        _destroy_texture_config(&c->textures[i]);
+    }
+    for (int i = 0; i < MAX_UNIFORM_COUNT; i++) {
+        _destroy_uniform_config(&c->vert_uniforms[i]);
+    }
+
+    for (int i = 0; i < MAX_UNIFORM_COUNT; i++) {
+        _destroy_uniform_config(&c->frag_uniforms[i]);
+    }
+
+    _set_config_defaults(c);
+}
+
+void _set_config_defaults(Config *c)
+{
+    assert(c != NULL);
+
+    c->vert_uniform_count = CONFIG_DEFAULT_VERT_UNIFORM_COUNT;
+    c->frag_uniform_count = CONFIG_DEFAULT_FRAG_UNIFORM_COUNT;
+    c->texture_count = CONFIG_DEFAULT_TEXTURE_COUNT;
 }
 
 void print_config(Config *config)
@@ -228,8 +268,8 @@ void print_config(Config *config)
     assert(config != NULL);
 
     printf("Config:\n");
-    print_app_config(config->app);
-    print_object_config(config->object);
+    print_app_config(&config->app);
+    print_object_config(&config->object);
     printf("texture_count: %d\n", config->texture_count);
     for (int i = 0; i < config->texture_count; i++) {
         print_texture_config(&(config->textures[i]));
@@ -242,7 +282,6 @@ void print_config(Config *config)
     for (int i = 0; i < config->frag_uniform_count; i++) {
         print_uniform_config(&(config->frag_uniforms[i]));
     }
-
 }
 
 void print_app_config(AppConfig *config)
@@ -250,7 +289,7 @@ void print_app_config(AppConfig *config)
     assert(config != NULL);
 
     printf("AppConfig:\n");
-    printf("  object_file - %s\n", config->object_file);
+    printf("  object_file - %s\n", config->object_filename);
 
 }
 
@@ -259,8 +298,8 @@ void print_object_config(ObjectConfig *config)
     assert(config != NULL);
 
     printf("ObjectConfig:\n");
-    printf("  vert_shader_file - %s\n", config->vert_shader_file);
-    printf("  frag_shader_file - %s\n", config->frag_shader_file);
+    printf("  vert_shader_file - %s\n", config->vert_shader_filename);
+    printf("  frag_shader_file - %s\n", config->frag_shader_filename);
 
 }
 
@@ -305,21 +344,98 @@ void print_texture_config(TextureConfig *config)
 
     printf("TextureConfig:");
     printf("  name - %s\n", config->name);
-    printf("  bmp_file - %s\n", config->bmp_file);
+    printf("  bmp_file - %s\n", config->filename);
 }
 
-void destroy_config(Config *config)
+void _init_app_config(AppConfig *c)
 {
-    assert(config != NULL);
+    assert(c != NULL);
 
-    assert(config->app != NULL);
-    free(config->app->object_file);
-    free(config->app);
+    _set_app_config_defaults(c);
+}
 
-    assert(config->object != NULL);
-    free(config->object->vert_shader_file);
-    free(config->object->frag_shader_file);
-    free(config->object);
+void _destroy_app_config(AppConfig *c)
+{
+    assert(c != NULL);
 
-    free(config);
+    _set_app_config_defaults(c);
+}
+
+void _set_app_config_defaults(AppConfig *c)
+{
+    assert(c != NULL);
+
+    c->object_filename[0] = '\0';
+}
+
+void _init_object_config(ObjectConfig *c)
+{
+    assert(c != NULL);
+
+    _set_object_config_defaults(c);
+}
+
+void _destroy_object_config(ObjectConfig *c)
+{
+    assert(c != NULL);
+
+    _set_object_config_defaults(c);
+}
+
+void _set_object_config_defaults(ObjectConfig *c)
+{
+    assert(c != NULL);
+
+    c->vert_shader_filename[0] = '\0';
+    c->frag_shader_filename[0] = '\0';
+}
+
+
+void _init_texture_config(TextureConfig *c)
+{
+    assert(c != NULL);
+
+    _set_texture_config_defaults(c);
+}
+
+void _destroy_texture_config(TextureConfig *c)
+{
+    assert(c != NULL);
+
+    _set_texture_config_defaults(c);
+}
+
+void _set_texture_config_defaults(TextureConfig *c)
+{
+    assert(c != NULL);
+
+    c->name[0] = '\0';
+    c->filename[0] = '\0';
+}
+
+void _init_uniform_config(UniformConfig *c)
+{
+    assert(c != NULL);
+
+    _set_uniform_config_defaults(c);
+}
+
+void _destroy_uniform_config(UniformConfig *c)
+{
+    assert(c != NULL);
+
+    _set_uniform_config_defaults(c);
+}
+
+void _set_uniform_config_defaults(UniformConfig *c)
+{
+    assert(c != NULL);
+
+    c->type = UNIFORM_UNKNOWN;
+    c->name[0] = '\0';
+    c->i = 0;
+    c->x = 0.0;
+    c->y = 0.0;
+    c->z = 0.0;
+    c->w = 0.0;
 }

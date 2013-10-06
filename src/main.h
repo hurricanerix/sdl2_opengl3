@@ -27,4 +27,6 @@
 #define TRUE (1)
 #define FALSE (0)
 
+#define MAX_FILENAME_LEN (255)
+
 #endif//__MIAN_H__

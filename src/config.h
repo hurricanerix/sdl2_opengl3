@@ -24,17 +24,20 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include "main.h"
+#include "status.h"
+
 #define MAX_LINE_LEN (1024)
 #define MAX_UNIFORM_COUNT (10)
 #define MAX_TEXTURE_COUNT (4)
 
 typedef struct AppConfig {
-    char *object_file;
+    char object_filename[MAX_FILENAME_LEN];
 } AppConfig;
 
 typedef struct ObjectConfig {
-    char *vert_shader_file;
-    char *frag_shader_file;
+    char vert_shader_filename[MAX_FILENAME_LEN];
+    char frag_shader_filename[MAX_FILENAME_LEN];
 } ObjectConfig;
 
 enum UniformDataTypes {
@@ -53,12 +56,13 @@ typedef struct UniformConfig {
 
 typedef struct TextureConfig {
     char name[MAX_LINE_LEN];
-    char bmp_file[MAX_LINE_LEN];
+    char filename[MAX_LINE_LEN];
 } TextureConfig;
 
 typedef struct Config {
-    AppConfig *app;
-    ObjectConfig *object;
+    Status status;
+    AppConfig app;
+    ObjectConfig object;
     int vert_uniform_count;
     UniformConfig vert_uniforms[MAX_UNIFORM_COUNT];
     int frag_uniform_count;
@@ -67,12 +71,14 @@ typedef struct Config {
     TextureConfig textures[MAX_TEXTURE_COUNT];
 } Config;
 
-Config *get_config(char *filename);
+void init_config(Config *c);
+void load_config(Config *c, char *filename);
+void destroy_config(Config *config);
+
 void print_config(Config *config);
 void print_app_config(AppConfig *config);
 void print_object_config(ObjectConfig *config);
 void print_texture_config(TextureConfig *config);
 void print_uniform_config(UniformConfig *config);
-void destroy_config(Config *config);
 
 #endif//__CONFIG_H__

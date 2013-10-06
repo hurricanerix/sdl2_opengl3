@@ -21,51 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "includes.h"
+#ifndef __ERROR_H__
+#define __ERROR_H__
 
+#define MAX_ERROR_MSG_LEN (128)
 
-void print_help(char *command);
+typedef struct Status {
+    int is_error;
+    char error_msg[MAX_ERROR_MSG_LEN];
+} Status;
 
+void init_status(Status *s);
+void set_error_msg(Status *s, char *msg, ...);
+void copy_status(Status *dst, Status *src);
+void _print_status(FILE *fp, Status *s);
+#define print_status(s) (_print_status(stderr, s))
 
-int main(int argc, char *argv[])
-{
-    if (argc < 2) {
-        print_help(argv[0]);
-        exit(1);
-    }
-
-    init_logger(stderr);
-
-    Config config;
-    init_config(&config);
-    load_config(&config, argv[1]);
-    if (config.status.is_error) {
-        fprintf(stderr, "Error: %s\n", config.status.error_msg);
-        return 1;
-    }
-
-    load_app(&config);
-    if (config.status.is_error) {
-        fprintf(stderr, "Error: %s\n", config.status.error_msg);
-        return 1;
-    }
-
-    Status app_status;
-    run_app(&app_status);
-    if (app_status.is_error) {
-        fprintf(stderr, "Error: %s\n", app_status.error_msg);
-        return 1;
-    }
-
-    destroy_app();
-
-    return 0;
-}
-
-void print_help(char *command)
-{
-    assert(command != NULL);
-
-    fprintf(stderr, "%s help:\n", command);
-    fprintf(stderr, "%s <config file>\n\n", command);
-}
+#endif//__ERROR_H__

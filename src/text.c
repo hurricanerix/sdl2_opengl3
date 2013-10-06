@@ -21,14 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "logger.h"
-#include "main.h"
-#include "text.h"
+#include "includes.h"
 
 
 char *text_file_read(char *filename, int *size)

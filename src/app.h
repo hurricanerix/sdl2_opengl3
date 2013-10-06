@@ -21,51 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "includes.h"
+#ifndef __APP_H__
+#define __APP_H__
 
+#include "config.h"
 
-void print_help(char *command);
+void load_app(Config *config);
+void run_app();
+void destroy_app();
 
+void _print_renderer_info(FILE *fp, SDL_RendererInfo *info);
+#define print_renderer_info(info) (_print_renderer_info(stdout, info))
 
-int main(int argc, char *argv[])
-{
-    if (argc < 2) {
-        print_help(argv[0]);
-        exit(1);
-    }
+void _print_opengl_info(FILE *fp);
+#define print_opengl_info() (_print_opengl_info(stdout))
 
-    init_logger(stderr);
-
-    Config config;
-    init_config(&config);
-    load_config(&config, argv[1]);
-    if (config.status.is_error) {
-        fprintf(stderr, "Error: %s\n", config.status.error_msg);
-        return 1;
-    }
-
-    load_app(&config);
-    if (config.status.is_error) {
-        fprintf(stderr, "Error: %s\n", config.status.error_msg);
-        return 1;
-    }
-
-    Status app_status;
-    run_app(&app_status);
-    if (app_status.is_error) {
-        fprintf(stderr, "Error: %s\n", app_status.error_msg);
-        return 1;
-    }
-
-    destroy_app();
-
-    return 0;
-}
-
-void print_help(char *command)
-{
-    assert(command != NULL);
-
-    fprintf(stderr, "%s help:\n", command);
-    fprintf(stderr, "%s <config file>\n\n", command);
-}
+#endif//__APP_H__

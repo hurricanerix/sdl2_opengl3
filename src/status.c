@@ -24,48 +24,43 @@
 #include "includes.h"
 
 
-void print_help(char *command);
-
-
-int main(int argc, char *argv[])
+void init_status(Status *s)
 {
-    if (argc < 2) {
-        print_help(argv[0]);
-        exit(1);
-    }
+    assert(s != NULL);
 
-    init_logger(stderr);
-
-    Config config;
-    init_config(&config);
-    load_config(&config, argv[1]);
-    if (config.status.is_error) {
-        fprintf(stderr, "Error: %s\n", config.status.error_msg);
-        return 1;
-    }
-
-    load_app(&config);
-    if (config.status.is_error) {
-        fprintf(stderr, "Error: %s\n", config.status.error_msg);
-        return 1;
-    }
-
-    Status app_status;
-    run_app(&app_status);
-    if (app_status.is_error) {
-        fprintf(stderr, "Error: %s\n", app_status.error_msg);
-        return 1;
-    }
-
-    destroy_app();
-
-    return 0;
+    s->is_error = FALSE;
+    s->error_msg[0] = '\0';
 }
 
-void print_help(char *command)
+void set_error_msg(Status *s, char *msg, ...)
 {
-    assert(command != NULL);
+    assert(s != NULL);
+    assert(msg != NULL);
 
-    fprintf(stderr, "%s help:\n", command);
-    fprintf(stderr, "%s <config file>\n\n", command);
+    s->is_error = TRUE;
+
+    va_list arg;
+    va_start (arg, msg);
+    vsnprintf (s->error_msg, MAX_ERROR_MSG_LEN, msg, arg);
+    va_end (arg);
+}
+
+void copy_status(Status *dst, Status *src)
+{
+    assert(dst != NULL);
+    assert(src != NULL);
+
+    dst->is_error = src->is_error;
+    strncpy(dst->error_msg, src->error_msg, MAX_ERROR_MSG_LEN);
+}
+
+void _print_status(FILE *fp, Status *s)
+{
+    assert(s != NULL);
+    assert(fp != NULL);
+
+    fprintf(fp, "Status {\n");
+    fprintf(fp, "  is_error == %d\n", s->is_error);
+    fprintf(fp, "  error_msg == '%s'\n", s->error_msg);
+    fprintf(fp, "}");
 }

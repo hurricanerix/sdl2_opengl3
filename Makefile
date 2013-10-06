@@ -20,16 +20,20 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
+EXECUTABLE=demo
+EXECUTABLE_EXT=
+SOURCES=main.c 3dmath.c shader.c text.c object.c plyfile.c logger.c config.c texture.c status.c app.c
+HEADERS=$(SOURCES:%.c=%.h)
+OBJECTS=$(EXECUTABLES:%.c=%.o) $(SOURCES:%.c=%.o) 
+
 ifeq ($(OS),Windows_NT)
-    echo "???"
+    CC=echo "???"
+    CFLAGS_ALL=
+    LDFLAGS_ALL=
+    EXECUTABLE_EXT=.exe
 else
     CC=gcc -std=gnu99
-    EXECUTABLE=demo
-    SOURCES=main.c 3dmath.c shader.c text.c object.c plyfile.c logger.c config.c bmp.c
-    HEADERS=$(SOURCES:%.c=%.h)
-    OBJECTS=$(EXECUTABLES:%.c=%.o) $(SOURCES:%.c=%.o) 
     UNAME_S := $(shell uname -s)
-
     CFLAGS_ALL=-g -Wall -Werror -O3 -c `sdl2-config --cflags`
     LDFLAGS_ALL=-L/usr/local/lib -lm `sdl2-config --libs`
 
@@ -43,11 +47,11 @@ else
     endif
 endif
 
-all: bin/$(EXECUTABLE)
+all: bin/$(EXECUTABLE)$(EXECUTABLE_EXT)
 
-bin/$(EXECUTABLE): $(OBJECTS:%.o=obj/%.o)
+bin/$(EXECUTABLE)$(EXECUTABLE_EXT): $(OBJECTS:%.o=obj/%.o)
 	@echo "INFO: Linking '$@'..."
-	$(CC) $(SOURCES:%.c=obj/%.o) $(LDFLAGS) -o bin/$(EXECUTABLE)
+	$(CC) $(SOURCES:%.c=obj/%.o) $(LDFLAGS) -o bin/$(EXECUTABLE)$(EXECUTABLE_EXT)
 
 $(OBJECTS:%.o=obj/%.o): $(SOURCES:%.c=src/%.c) $(HEADERS:%.h=src/%.h)
 	@echo "INFO: Compiling '$(@:obj/%.o=src/%.c)' to '$@'..."
@@ -55,4 +59,4 @@ $(OBJECTS:%.o=obj/%.o): $(SOURCES:%.c=src/%.c) $(HEADERS:%.h=src/%.h)
 
 clean:
 	@echo "INFO: Cleaning workspace..."
-	@rm -f obj/*.o && rm -f bin/$(EXECUTABLE)
+	rm -f obj/*.o && rm -f bin/$(EXECUTABLE)
