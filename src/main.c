@@ -41,6 +41,7 @@
 #include "logger.h"
 #include "object.h"
 #include "shader.h"
+#include "status.h"
 #include "text.h"
 #include "main.h"
 
@@ -48,19 +49,119 @@
 SDL_Window* display_window;
 SDL_Renderer* display_renderer;
 
-GLuint p,v,f;
+Config config;
+Shader shader;
+Object object;
+
+//GLuint p,v,f;
 mat4 proj_matrix;
 mat4 view_matrix;
 mat4 mvp_matrix;
 mat3 rotation_matrix;
 
-
+void init_main(Config *config);
 void render_scene();
+
 void setup_textures(Config *config);
 void cleanup(Config *config);
 void process_keys(unsigned char key, int x, int y);
 void set_uniforms();
 void change_size(int w, int h);
+void print_help(char *command);
+void print_renderer_info(SDL_RendererInfo *ri);
+void print_opengl_info();
+
+int main(int argc, char *argv[])
+{
+    if (argc < 2) {
+        print_help(argv[0]);
+        exit(1);
+    }
+
+    init_logger(stderr);
+    init_config(&config);
+    load_config(&config, argv[1]);
+    print_config(&config);
+
+    init_main(&config);
+
+    SDL_Event event;
+
+    for (;;)
+    {
+        SDL_PollEvent(&event);
+
+        render_scene(&config);
+
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            cleanup(&config);
+            return 0;
+        default:
+            break;
+        }
+    }
+
+    SDL_Quit();
+
+    return 0;
+}
+
+void init_main(Config *config)
+{
+    assert(config != NULL);
+
+    printf("Initializing SDL...\n");
+    SDL_Init(SDL_INIT_VIDEO);
+    printf("Initializing SDL Complete\n");
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    SDL_GL_SetAttribute(
+        SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    SDL_RendererInfo display_renderer_info;
+    printf("Creating window and renderer...\n");
+    SDL_CreateWindowAndRenderer(
+        800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL, &display_window, &display_renderer);
+    printf("Creating window and renderer Complete\n");
+
+    SDL_GetRendererInfo(display_renderer, &display_renderer_info);
+    if ((display_renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 ||
+        (display_renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
+        log_error("No render surface found");
+        // TODO: Handle this. We have no render surface and not accelerated.
+    }
+    print_renderer_info(&display_renderer_info);
+
+    SDL_GL_SetSwapInterval(1);
+
+    print_opengl_info();
+
+    change_size(800, 600);
+
+    glEnable(GL_DEPTH_TEST);
+
+    glClearColor(0.2,0.2,0.2,1.0);
+
+    init_shader(&shader);
+
+    load_shader(config->object.vert_shader_filename, config->object.frag_shader_filename, &shader);
+    if (shader.status.is_error) {
+        fprintf(stderr, "ERROR\n");
+        exit(1);
+    }
+
+    fprintf(stderr, "TEST\n");
+    exit(1);
+
+    //setup_textures(config);
+
+    object = init_object();
+
+    load_object(config->app.object_filename, &shader, NULL, NULL, &object);
+}
 
 void print_help(char *command)
 {
@@ -96,79 +197,7 @@ void print_renderer_info(SDL_RendererInfo *ri)
 
 }
 
-int main(int argc, char *argv[])
-{
-    if (argc < 2) {
-        print_help(argv[0]);
-        exit(1);
-    }
 
-    init_logger(stderr);
-    for (int i = 0; i < argc; i++) {
-    }
-
-    Config *config = get_config(argv[1]);
-    print_config(config);
-
-    printf("Initializing SDL...\n");
-    SDL_Init(SDL_INIT_VIDEO);
-    printf("Initializing SDL Complete\n");
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    SDL_GL_SetAttribute(
-        SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-    SDL_RendererInfo display_renderer_info;
-    printf("Creating window and renderer...\n");
-    SDL_CreateWindowAndRenderer(
-        800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL, &display_window, &display_renderer);
-    printf("Creating window and renderer Complete\n");
-
-    SDL_GetRendererInfo(display_renderer, &display_renderer_info);
-    if ((display_renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 ||
-        (display_renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
-        log_error("No render surface found");
-        // TODO: Handle this. We have no render surface and not accelerated.
-    }
-    print_renderer_info(&display_renderer_info);
-
-    SDL_GL_SetSwapInterval(1);
-
-    print_opengl_info();
-
-    change_size(800, 600);
-
-    glEnable(GL_DEPTH_TEST);
-    glClearColor(0.2,0.2,0.2,1.0);
-
-    p = setupShaders(config->object->vert_shader_file,
-        config->object->frag_shader_file);
-    setupBuffers(config->app->object_file);
-    setup_textures(config);
-
-    SDL_Event event;
-
-    for (;;)
-    {
-        SDL_PollEvent(&event);
-
-        render_scene(config);
-
-        switch (event.type)
-        {
-        case SDL_QUIT:
-            cleanup(config);
-            return 0;
-        default:
-            break;
-        }
-    }
-
-    SDL_Quit();
-
-    return 0;
-}
 
 void render_scene(Config *config)
 {
@@ -186,10 +215,10 @@ void render_scene(Config *config)
     vec3 lookAt = {{.x=0}, {.y=0}, {.z=0}};
     view_matrix = get_view_matrix(pos, lookAt);
 
-    glUseProgram(p);
+    glUseProgram(shader.program_id);
     set_uniforms(config);
 
-    render_object();
+    render_object(&object);
 
     SDL_GL_SwapWindow(display_window);
 }
@@ -203,37 +232,30 @@ void process_keys(unsigned char key, int x, int y)
 {
 
     if (key == 27) {
-        destroy_object();
-        glDeleteProgram(p);
-        //glDeleteShader(v);
-        //glDeleteShader(f);
+        destroy_object(&object);
+        destroy_shader(&shader);
         exit(0);
     }
-
 }
 
 void set_uniforms(Config *config)
 {
     // must be called after glUseProgram
-    glUniformMatrix4fv(projMatrixLoc,  1, GL_FALSE, (float *)&mvp_matrix);
-    glUniformMatrix4fv(viewMatrixLoc,  1, GL_FALSE, (float *)&view_matrix);
-    glUniformMatrix3fv(rotMatrixLoc,  1, GL_FALSE, (float *)&rotation_matrix);
+    glUniformMatrix4fv(shader.proj_matrix_loc,  1, GL_FALSE, (float *)&mvp_matrix);
+    glUniformMatrix4fv(shader.view_matrix_loc,  1, GL_FALSE, (float *)&view_matrix);
+    glUniformMatrix3fv(shader.rot_matrix_loc,  1, GL_FALSE, (float *)&rotation_matrix);
 
     for (int i = 0; i < config->vert_uniform_count; i++) {
-        set_uniform(p, &(config->vert_uniforms[i]));
+        bind_uniform(&shader, &(config->vert_uniforms[i]));
     }
 
     for (int i = 0; i < config->frag_uniform_count; i++) {
-        set_uniform(p, &(config->frag_uniforms[i]));
+        bind_uniform(&shader, &(config->frag_uniforms[i]));
     }
-
-
 }
-
 
 void change_size(int w, int h)
 {
-
     float ratio;
     // Prevent a divide by zero, when window is too short
     // (you cant make a window of zero width).
@@ -254,7 +276,7 @@ void setup_textures(Config *config)
 {
 
     for(int i = 0; i < config->texture_count; i++) {
-        setup_texture(&(config->textures[i]));
+        //setup_texture(&(config->textures[i]));
     }
 
 }

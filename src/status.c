@@ -21,12 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#define TRUE (1)
-#define FALSE (0)
+#include "main.h"
+#include "status.h"
 
-#define MAX_FILENAME_LEN (255)
 
-#endif//__MIAN_H__
+void init_status(Status *s)
+{
+    assert(s != NULL);
+
+    s->is_error = FALSE;
+    s->error_msg[0] = '\0';
+}
+
+void print_status(Status s)
+{
+    printf("Status {\n");
+    printf("  is_error == %d\n", s.is_error);
+    printf("  error_msg == '%s'\n", s.error_msg);
+    printf("}");
+}

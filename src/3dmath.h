@@ -42,6 +42,12 @@ typedef struct vec4 {
     union {float w; float a;};
 } vec4;
 
+typedef struct ivec3 {
+    union {int x; int r; int s;};
+    union {int y; int g; int t;};
+    union {int z; int b;};
+} ivec3;
+
 typedef struct mat3 {
     vec3 row1;
     vec3 row2;

@@ -25,11 +25,17 @@
 #define __OBJECT_H__
 
 #include "config.h"
+#include "status.h"
+#include "shader.h"
+#include "texture.h"
+
+#define OBJECT_GL_BUFFER_COUNT (5)
+#define OBJECT_MAX_TEXTURE_COUNT (2)
 
 typedef struct Vertex {
   float x, y, z;             /* the usual 3-space position of a vertex */
   float nx, ny, nz;
-  float u, v;
+  float s, t;
 } Vertex;
 
 typedef struct Face {
@@ -38,14 +44,33 @@ typedef struct Face {
   int *verts;              /* vertex index list */
 } Face;
 
-//extern GLuint vao[3];
-//extern GLuint vao[3];
-//extern int triangle_count;
-//extern GLuint faces[];
+typedef struct Object {
+    Status status;
+    char *filename;
+    unsigned int vertex_count;
+    unsigned int triangle_count;
+    vec3 *vertices;
+    vec3 *normals;
+    vec3 *tangents;
+    vec2 *tex_coords;
+    ivec3 *triangles;
+    Shader *shader;
+    Texture *colormap;
+    Texture *normalmap;
+    GLuint gl_buffers[OBJECT_GL_BUFFER_COUNT];
+} Object;
 
-void setup_texture(TextureConfig *config);
-void setupBuffers(char *file_name); // rename to create_object
-void render_object();
-void destroy_object();
+Object init_object();
+
+void load_object(char *filename, Shader *shader, Texture *colormap,
+        Texture *normalmap, Object *o);
+
+void bind_object(Object *o);
+
+void render_object(Object *o);
+
+void unbind_object(Object *o);
+
+void destroy_object(Object *o);
 
 #endif//__OBJECT_H__

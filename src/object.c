@@ -36,199 +36,118 @@
 
 #include "logger.h"
 #include "3dmath.h"
+#include "main.h"
 #include "plyfile.h"
 #include "shader.h"
+#include "status.h"
 #include "object.h"
-#include "bmp.h"
-
-unsigned char *bmp_data;
-int bmp_width;
-int bmp_height;
+#include "texture.h"
 
 
-PlyProperty vert_props[] = { /* list of property information for a vertex */
+#define OBJECT_DEFAULT_FILENAME (NULL)
+#define OBJECT_DEFAULT_VERTEX_COUNT (0)
+#define OBJECT_DEFAULT_TRIANGLE_COUNT (0)
+#define OBJECT_DEFAULT_VERTICES (NULL)
+#define OBJECT_DEFAULT_NORMALS (NULL)
+#define OBJECT_DEFAULT_TANGENTS (NULL)
+#define OBJECT_DEFAULT_TEX_COORDS (NULL)
+#define OBJECT_DEFAULT_TRIANGLES (NULL)
+#define OBJECT_DEFAULT_SHADER (NULL)
+#define OBJECT_DEFAULT_COLORMAP (NULL)
+#define OBJECT_DEFAULT_NORMALMAP (NULL)
+
+// list of property information for a vertex
+PlyProperty vert_props[] = {
   {"x", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,x), 0, 0, 0, 0},
   {"y", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,y), 0, 0, 0, 0},
   {"z", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,z), 0, 0, 0, 0},
   {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,nx), 0, 0, 0, 0},
   {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,ny), 0, 0, 0, 0},
   {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,nz), 0, 0, 0, 0},
-  {"s", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,u), 0, 0, 0, 0},
-  {"t", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,v), 0, 0, 0, 0},
+  {"s", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,s), 0, 0, 0, 0},
+  {"t", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,t), 0, 0, 0, 0},
 };
-PlyProperty face_props[] = { /* list of property information for a vertex */
-  {"intensity", PLY_UCHAR, PLY_UCHAR, offsetof(Face,intensity), 0, 0, 0, 0},
+
+// list of property information for a vertex
+PlyProperty face_props[] = {
   {"vertex_indices", PLY_INT, PLY_INT, offsetof(Face,verts),
    1, PLY_UCHAR, PLY_UCHAR, offsetof(Face,nverts)},
 };
 
 
-GLuint vao[3];
+void _set_object_defaults(Object *o);
 
-float *vertices;
-float *normals;
-float *tangents;
-float *tex_coords;
-GLuint *faces;
 
-GLuint vertex_count = -1;
-GLuint tex_count = -1;
-GLuint face_count = -1;
-
-GLuint buffers[5];
-
-void read_object(char *file_name);
-
-void setup_texture(TextureConfig *config)
+Object init_object()
 {
-    assert(config != NULL);
+    Object o;
+    init_status(&o.status);
 
-    unsigned char *bmp_data;
-    int bmp_width;
-    int bmp_height;
-    GLuint textureID;
+    _set_object_defaults(&o);
 
-    load_bmp(config->bmp_file, &bmp_width, &bmp_height, &bmp_data);
-
-    glGenTextures(1, &textureID);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bmp_width, bmp_height, 0, GL_RGB,
-        GL_UNSIGNED_BYTE, bmp_data);
-
-    free(bmp_data);
+    return o;
 }
 
-
-void setupBuffers(char *file_name)
+void load_object(char *filename, Shader *shader, Texture *colormap,
+        Texture *normalmap, Object *o)
 {
-    assert(file_name != NULL);
+    assert(o != NULL);
+    assert(filename != NULL);
+    assert(shader != NULL);
 
-    read_object(file_name);
-    assert(vertex_count != -1);
-    assert(face_count != -1);
+    o->status.is_error = FALSE;
 
-    glEnable(GL_CULL_FACE);
-    //glFrontFace(GL_CW);
+    if (o->filename != NULL &&
+            strncmp(o->filename, filename, MAX_FILENAME_LEN) != 0) {
+        destroy_object(o);
+    }
 
-    glGenVertexArrays(1, vao);
-    glBindVertexArray(vao[0]);
+    o->filename = malloc(strnlen((filename), MAX_FILENAME_LEN));
+    if (!o->filename) {
+        o->status.is_error = TRUE;
+        set_error_msg(
+            o->status, "Could not allocate memory for object filename.");
+        return;
+    }
+    strncpy(o->filename, (filename), MAX_FILENAME_LEN);
 
-    // bind buffer for vertex and copy data into buffer
-    glGenBuffers(1, &buffers[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertex_count, vertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(vertexLoc);
-    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, 0, 0, 0);
+    o->shader->ref_count++;
 
-    // bind buffer for normal and copy data into buffer
-    glGenBuffers(1, &buffers[1]);
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(normals) * vertex_count, normals, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(normalLoc);
-    glVertexAttribPointer(normalLoc, 3, GL_FLOAT, 0, 0, 0);
+    if (colormap != NULL) {
+        o->colormap = colormap;
+        o->colormap->ref_count++;
+    }
 
-    // bind buffer for tanget and copy data into buffer
-    glGenBuffers(1, &buffers[2]);
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[2]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(tangents) * vertex_count, tangents, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(tangentLoc);
-    glVertexAttribPointer(tangentLoc, 3, GL_FLOAT, 0, 0, 0);
+    if (normalmap != NULL) {
+        o->normalmap = normalmap;
+        o->normalmap->ref_count++;
+    }
 
-    // bind buffer for tex coords and copy data into buffer
-    glGenBuffers(1, &buffers[3]);
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[3]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(tex_coords) * tex_count, tex_coords, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(texLoc);
-    glVertexAttribPointer(texLoc, 3, GL_FLOAT, 0, 0, 0);
-
-    glGenBuffers(1, &buffers[4]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[4]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * face_count, faces, GL_STATIC_DRAW);
-}
-
-void render_object()
-{
-    glDrawElements(GL_TRIANGLES, face_count, GL_UNSIGNED_INT, NULL);
-}
-
-void destroy_object()
-{
-    glDisableVertexAttribArray(vertexLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDeleteBuffers(1, &buffers[0]);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glDeleteBuffers(1, &buffers[1]);
-
-    glBindVertexArray(0);
-    glDeleteVertexArrays(1, vao);
-
-    free(vertices);
-    free(normals);
-    free(tangents);
-    free(tex_coords);
-    free(faces);
-    face_count = -1;
-    vertex_count = -1;
-    tex_count = -1;
-}
-
-void read_object(char *file_name)
-{
-    assert(file_name != NULL);
-
-    int i,j,k;
+    // open a PLY file for reading
     PlyFile *ply;
     int nelems;
     char **elist;
     int file_type;
     float version;
+    ply = ply_open_for_reading(o->filename, &nelems, &elist, &file_type, &version);
+
+    // go through each kind of element that we learned is in the file
+    // and read them
     int nprops;
     int num_elems;
-    //PlyProperty **plist;
-    Vertex **vlist;
-    Face **flist;
     char *elem_name;
-    //int num_comments;
-    //char **comments;
-    //int num_obj_info;
-    //char **obj_info;
-
-    // open a PLY file for reading 
-    ply = ply_open_for_reading(file_name, &nelems, &elist, &file_type, &version);
-
-    // print what we found out about the file 
-
-    // go through each kind of element that we learned is in the file 
-    // and read them 
-
-    for (i = 0; i < nelems; i++) {
-        // get the description of the first element 
+    for (int i = 0; i < nelems; i++) {
+        // get the description of the first element
         elem_name = elist[i];
-        //plist = ply_get_element_description (ply, elem_name, &num_elems, &nprops);
         ply_get_element_description (ply, elem_name, &num_elems, &nprops);
 
-        // print the name of the element, for debugging 
-
-        // if we're on vertex elements, read them in 
+        // if we're on vertex elements, read them in
         if (strncmp("vertex", elem_name, sizeof("vertex")) == 0) {
-            vertex_count = num_elems * 3;
-            tex_count = num_elems * 2;
-            vertices = malloc(sizeof(float) * vertex_count);
-            normals = malloc(sizeof(float) * vertex_count);
-            tangents = malloc(sizeof(float) * vertex_count);
-            tex_coords = malloc(sizeof(float) * tex_count);
-
-            // create a vertex list to hold all the vertices 
-            vlist = (Vertex **) malloc (sizeof (Vertex *) * num_elems);
+            o->vertex_count = num_elems;
+            o->vertices = malloc(sizeof(vec3) * o->vertex_count);
+            o->normals = malloc(sizeof(vec3) * o->vertex_count);
+            //o->tangents = malloc(sizeof(vec3) * o->vertex_count);
+            o->tex_coords = malloc(sizeof(vec2) * o->vertex_count);
 
             // set up for getting vertex elements 
             ply_get_property (ply, elem_name, &vert_props[0]);
@@ -240,126 +159,173 @@ void read_object(char *file_name)
             ply_get_property (ply, elem_name, &vert_props[6]);
             ply_get_property (ply, elem_name, &vert_props[7]);
 
-            // grab all the vertex elements 
-            for (j = 0; j < num_elems; j++) {
-                // grab and element from the file 
-                vlist[j] = (Vertex *) malloc (sizeof (Vertex));
-                assert(vlist[j] != NULL);
-                ply_get_element (ply, (void *) vlist[j]);
+            // grab all the vertex elements
+            for (int j = 0; j < num_elems; j++) {
+                Vertex vertex;
+                ply_get_element (ply, (void *) &vertex);
 
-                // print out vertex x,y,z for debugging 
-                int x = (j * 3);
-                int y = (j * 3) + 1;
-                int z = (j * 3) + 2; 
-                vertices[x] = vlist[j]->x;
-                vertices[y] = vlist[j]->y;
-                vertices[z] = vlist[j]->z;
+                vec3 *v = &(o->vertices[j]);
+                v->x = vertex.x;
+                v->y = vertex.y;
+                v->z = vertex.z;
 
-                normals[x] = vlist[j]->nx;
-                normals[y] = vlist[j]->ny;
-                normals[z] = vlist[j]->nz;
+                vec3 *n = &(o->normals[j]);
+                n->x = vertex.nx;
+                n->y = vertex.ny;
+                n->z = vertex.nz;
 
-                tex_coords[x] = vlist[j]->u;
-                tex_coords[y] = vlist[j]->v;
+                vec2 *t = &(o->tex_coords[j]);
+                t->s = vertex.s;
+                t->t = vertex.t;
             }
         }
 
-        // if we're on face elements, read them in 
         if (strncmp("face", elem_name, sizeof("face")) == 0) {
-            // create a list to hold all the face elements 
-            face_count = num_elems * 3;
-            faces = malloc(sizeof(GLuint) * face_count);
-            flist = (Face **) malloc (sizeof (Face *) * num_elems);
+            // we're on face elements
+            o->triangle_count = num_elems;
 
-            // set up for getting face elements 
+            // set up for getting face elements
             ply_get_property (ply, elem_name, &face_props[0]);
-            ply_get_property (ply, elem_name, &face_props[1]);
 
-            // grab all the face elements 
-            //int current_tan = 0;
-            for (j = 0; j < num_elems; j++) {
-                // grab and element from the file 
-                flist[j] = (Face *) malloc (sizeof (Face));
-                ply_get_element (ply, (void *) flist[j]);
+            // grab all the face elements
+            for (int j = 0; j < num_elems; j++) {
+                Face triangle;
+                ply_get_element (ply, (void *) &triangle);
 
-                // print out face info, for debugging 
+                ivec3 *t = &(o->triangles[j]);
+                t->x = triangle.verts[0];
+                t->y = triangle.verts[1];
+                t->z = triangle.verts[2];
 
-                int x = (j * 3);
-                int y = (j * 3) + 1;
-                int z = (j * 3) + 2;
-                faces[x] = flist[j]->verts[0];
-                faces[y] = flist[j]->verts[1];
-                faces[z] = flist[j]->verts[2];
+                vec3 *p1, *p2, *p3, *ptmp;
+                p1 = &(o->vertices[t->x]);
+                p2 = &(o->vertices[t->y]);
+                p3 = &(o->vertices[t->z]);
 
-                float pAx = vertices[faces[x]];
-                float pAy = vertices[faces[x] + 1];
-                float pAz = vertices[faces[x] + 2];
-                float tAx = tex_coords[faces[x]];
-                float tAy = tex_coords[faces[x] + 1];
+                vec2 *t1, *t2, *t3, *ttmp;
+                t1 = &(o->tex_coords[t->x]);
+                t2 = &(o->tex_coords[t->y]);
+                t3 = &(o->tex_coords[t->z]);
 
-                float pBx = vertices[faces[y]];
-                float pBy = vertices[faces[y] + 1];
-                float pBz = vertices[faces[y] + 2];
-                float tBx = tex_coords[faces[y]];
-                float tBy = tex_coords[faces[y] + 1];
+                for (int k = 0; k < 3; k++) {
+                    vec3 tangent = get_surface_local_tangent(*p1, *t1, *p2, *t2, *p3, *t3);
+                    vec3 *t = &(o->vertices[j]);
+                    t->x = tangent.x;
+                    t->y = tangent.y;
+                    t->z = tangent.z;
 
-                float pCx = vertices[faces[z]];
-                float pCy = vertices[faces[z] + 1];
-                float pCz = vertices[faces[z] + 2];
-                float tCx = tex_coords[faces[z]];
-                float tCy = tex_coords[faces[z] + 1];
-
-                for (k = 0; k < 3; k++) {
-                    /*printf("VERT %d %d %d\n", k*3, k*3+1, k*3+2);
-                    get_sl_tangent(
-                        pAx, pAy, pAz, tAx, tAy,
-                        pBx, pBy, pBz, tBx, tBy,
-                        pCx, pCy, pCz, tCx, tCy,
-                        &(tangents[current_tan]),
-                        &(tangents[current_tan + 1]),
-                        &(tangents[current_tan + 2]));
-                    current_tan += 2;*/
-
-                // swap around
-                float tmpx, tmpy, tmpz;
-                tmpx = pAx;
-                tmpy = pAy;
-                tmpz = pAz;
-                pAx = pCx;
-                pAy = pCy;
-                pAz = pCz;
-                pCx = pBx;
-                pCy = pBy;
-                pCz = pBz;
-                pBx = tmpx;
-                pBy = tmpy;
-                pBz = tmpz;
-
-                tAx = tCx;
-                tAy = tCy;
-                tCx = tBx;
-                tCy = tBy;
-                tBx = tmpx;
-                tBy = tmpy;
+                    ptmp = p1; p1 = p2; p2 = p3; p3 = ptmp;
+                    ttmp = t1; t1 = t2; t2 = t3; t3 = ttmp;
                 }
             }
         }
+    }
 
-        // print out the properties we got, for debugging 
-        for (j = 0; j < nprops; j++) {
-        }
+    ply_close(ply);
+}
 
-        }
+void bind_object(Object *o)
+{
+    assert(o != NULL);
+    assert(o->shader != NULL);
 
-        // grab and print out the comments in the file 
-        //comments = ply_get_comments (ply, &num_comments);
-        //for (i = 0; i < num_comments; i++) {
-        //}
+    if (o->vertex_count == 0) {
+        return;
+    }
 
-        // grab and print out the object information 
-        //obj_info = ply_get_obj_info (ply, &num_obj_info);
-        // for (i = 0; i < num_obj_info; i++) {
-        //}
+    glEnable(GL_CULL_FACE);
 
-        ply_close(ply);
+    glGenBuffers(OBJECT_GL_BUFFER_COUNT, o->gl_buffers);
+    // bind buffer for vertex and copy data into buffer
+
+    glBindBuffer(GL_ARRAY_BUFFER, o->gl_buffers[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * o->vertex_count * 3, o->vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(o->shader->vertex_loc);
+    glVertexAttribPointer(o->shader->vertex_loc, 3, GL_FLOAT, 0, 0, 0);
+
+    // bind buffer for normal and copy data into buffer
+    glBindBuffer(GL_ARRAY_BUFFER, o->gl_buffers[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * o->vertex_count * 3, o->normals, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(o->shader->normal_loc);
+    glVertexAttribPointer(o->shader->normal_loc, 3, GL_FLOAT, 0, 0, 0);
+
+    // bind buffer for tanget and copy data into buffer
+    glBindBuffer(GL_ARRAY_BUFFER, o->gl_buffers[3]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * o->vertex_count * 3, o->tangents, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(o->shader->tangent_loc);
+    glVertexAttribPointer(o->shader->tangent_loc, 3, GL_FLOAT, 0, 0, 0);
+
+    // bind buffer for tex coords and copy data into buffer
+    glBindBuffer(GL_ARRAY_BUFFER, o->gl_buffers[4]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * o->vertex_count * 2, o->tex_coords, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(o->shader->tex_coords_loc);
+    glVertexAttribPointer(o->shader->tex_coords_loc, 3, GL_FLOAT, 0, 0, 0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->gl_buffers[0]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * o->triangle_count, o->triangles, GL_STATIC_DRAW);
+}
+
+void render_object(Object *o)
+{
+    assert(o != NULL);
+
+    glDrawElements(GL_TRIANGLES, o->triangle_count, GL_UNSIGNED_INT, NULL);
+}
+
+void unbind_object(Object *o)
+{
+    assert(o != NULL);
+    assert(o->shader != NULL);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &o->gl_buffers[0]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    for (int i = 1; i < OBJECT_GL_BUFFER_COUNT; i++) {
+        glDeleteBuffers(1, &o->gl_buffers[i]);
+    }
+}
+
+void destroy_object(Object *o)
+{
+    if (o == NULL) {
+        return;
+    }
+
+    if (glIsBuffer(o->gl_buffers[0])) {
+        unbind_object(o);
+    }
+
+    free(o->filename);
+    free(o->vertices);
+    free(o->normals);
+    free(o->tangents);
+    free(o->tex_coords);
+    free(o->triangles);
+    o->shader->ref_count--;
+    if (o->colormap != NULL) {
+        o->colormap->ref_count--;
+    }
+    if (o->normalmap != NULL) {
+        o->normalmap->ref_count--;
+    }
+
+    _set_object_defaults(o);
+}
+
+void _set_object_defaults(Object *o)
+{
+    assert(o != NULL);
+
+    o->filename = OBJECT_DEFAULT_FILENAME;
+    o->vertex_count = OBJECT_DEFAULT_VERTEX_COUNT;
+    o->triangle_count = OBJECT_DEFAULT_TRIANGLE_COUNT;
+    o->vertices = OBJECT_DEFAULT_VERTICES;
+    o->normals = OBJECT_DEFAULT_NORMALS;
+    o->tangents = OBJECT_DEFAULT_TANGENTS;
+    o->tex_coords = OBJECT_DEFAULT_TEX_COORDS;
+    o->triangles = OBJECT_DEFAULT_TRIANGLES;
+    o->shader = OBJECT_DEFAULT_SHADER;
+    o->colormap = OBJECT_DEFAULT_COLORMAP;
+    o->normalmap = OBJECT_DEFAULT_NORMALMAP;
 }

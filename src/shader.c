@@ -31,23 +31,116 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #endif
+#include <string.h>
 
 #include "config.h"
 #include "logger.h"
+#include "main.h"
 #include "text.h"
 #include "shader.h"
+#include "status.h"
 
 
-GLuint vertexLoc, normalLoc, tangentLoc, texLoc;
-GLuint projMatrixLoc, viewMatrixLoc;
-GLuint rotMatrixLoc;
+#define SHADER_DEFAULT_REF_COUNT (0)
+#define SHADER_DEFAULT_VERTEX_LOC (0)
+#define SHADER_DEFAULT_NORMAL_LOC (0)
+#define SHADER_DEFAULT_TANGENT_LOC (0)
+#define SHADER_DEFAULT_TEX_COORDS_LOC (0)
+#define SHADER_DEFAULT_PROJ_MATRIX_LOC (0)
+#define SHADER_DEFAULT_VIEW_MATRIX_LOC (0)
+#define SHADER_DEFAULT_ROTATION_MATRIX_LOC (0)
+#define SHADER_DEFAULT_VERT_FILENAME (NULL)
+#define SHADER_DEFAULT_FRAG_FILENAME (NULL)
+#define SHADER_DEFAULT_PROGRAM_ID (0)
+#define SHADER_DEFAULT_VERT_PROGRAM_ID (0)
+#define SHADER_DEFAULT_FRAG_PROGRAM_ID (0)
 
 
-void set_uniform(int program, UniformConfig *config)
+void _set_shader_defaults(Shader *s);
+
+
+void init_shader(Shader *s)
+{
+    assert(s != NULL);
+
+    init_status(&s->status);
+    fprintf(stderr, "TEST %d\n", s->status.is_error);
+
+    _set_shader_defaults(s);
+}
+
+void load_shader(char *vert_filename, char *frag_filename, Shader *s)
+{
+    assert(s != NULL);
+    assert(vert_filename != NULL);
+    assert(frag_filename != NULL);
+
+    s->vert_filename = malloc(strnlen(vert_filename, MAX_FILENAME_LEN));
+    if (s->vert_filename == NULL) {
+        destroy_shader(s);
+        s->status.is_error = TRUE;
+        set_error_msg(s->status, "Could not malloc vert_file");
+        return;
+    }
+    strncpy(s->vert_filename, (vert_filename), MAX_FILENAME_LEN);
+    fprintf(stderr, "NAME: %s\n", vert_filename);
+
+    s->frag_filename = malloc(strnlen(frag_filename, MAX_FILENAME_LEN));
+    if (s->frag_filename == NULL) {
+        destroy_shader(s);
+        s->status.is_error = TRUE;
+        set_error_msg(s->status, "Could not malloc frag_file");
+        return;
+    }
+    strncpy(s->frag_filename, (frag_filename), MAX_FILENAME_LEN);
+
+    char *vs = NULL, *fs = NULL;
+
+    s->vert_program_id = glCreateShader(GL_VERTEX_SHADER);
+    s->frag_program_id = glCreateShader(GL_FRAGMENT_SHADER);
+
+    int vs_size;
+    vs = text_file_read(s->vert_filename, &vs_size);
+    int fs_size;
+    fs = text_file_read(s->frag_filename, &fs_size);
+
+    const char * vv = vs;
+    const char * ff = fs;
+
+    glShaderSource(s->vert_program_id, 1, &vv, NULL);
+    glShaderSource(s->frag_program_id, 1, &ff, NULL);
+
+    free(vs); free(fs);
+
+    glCompileShader(s->vert_program_id);
+    glCompileShader(s->frag_program_id);
+
+    print_shader_log(s->vert_program_id);
+    print_shader_log(s->frag_program_id);
+
+    s->program_id = glCreateProgram();
+    glAttachShader(s->program_id, s->vert_program_id);
+    glAttachShader(s->program_id, s->frag_program_id);
+
+    glBindFragDataLocation(s->program_id, 0, "FracColor");
+    glLinkProgram(s->program_id);
+    print_program_log(s->program_id);
+
+    s->vertex_loc = glGetAttribLocation(s->program_id, "MCvertex");
+    s->normal_loc = glGetAttribLocation(s->program_id, "MCnormal");
+    s->tangent_loc = glGetAttribLocation(s->program_id, "MCtangent");
+    s->tex_coords_loc = glGetAttribLocation(s->program_id, "TexCoord0");
+
+    s->proj_matrix_loc = glGetUniformLocation(s->program_id, "MVPMatrix");
+    s->view_matrix_loc = glGetUniformLocation(s->program_id, "MVMatrix");
+    s->rot_matrix_loc = glGetUniformLocation(s->program_id, "RotMatrix");
+}
+
+void bind_uniform(Shader *s, UniformConfig *config)
 {
     assert(config != NULL);
 
-    GLuint loc = glGetUniformLocation(program, config->name);
+    GLuint loc = glGetUniformLocation(s->program_id, config->name);
     switch(config->type) {
     case UNIFORM_INT:
         glUniform1i(loc, config->i);
@@ -67,10 +160,9 @@ void set_uniform(int program, UniformConfig *config)
     default:
         break;
     }
-
 }
 
-int printOglError(char *file, int line)
+int print_gl_error(char *file, int line)
 {
     assert(file != NULL);
     //
@@ -90,7 +182,7 @@ int printOglError(char *file, int line)
     return retCode;
 }
 
-void printShaderInfoLog(GLuint obj)
+void print_shader_log(GLuint obj)
 {
 
     int infologLength = 0;
@@ -108,7 +200,7 @@ void printShaderInfoLog(GLuint obj)
 
 }
 
-void printProgramInfoLog(GLuint obj)
+void print_program_log(GLuint obj)
 {
     int infologLength = 0;
     int charsWritten  = 0;
@@ -126,53 +218,45 @@ void printProgramInfoLog(GLuint obj)
 
 }
 
-GLuint setupShaders(char *vertexFileName, char *fragmentFileName)
+void destroy_shader(Shader *s)
 {
-    assert(vertexFileName != NULL);
-    assert(fragmentFileName != NULL);
+    if (s == NULL) {
+        return;
+    }
 
-    char *vs = NULL,*fs = NULL;
+    if (s->vert_program_id != SHADER_DEFAULT_VERT_PROGRAM_ID) {
+        glDeleteShader(s->vert_program_id);
+    }
 
-    GLuint p,v,f;
+    if (s->frag_program_id != SHADER_DEFAULT_FRAG_PROGRAM_ID) {
+        glDeleteShader(s->frag_program_id);
+    }
 
-    v = glCreateShader(GL_VERTEX_SHADER);
-    f = glCreateShader(GL_FRAGMENT_SHADER);
+    if (s->program_id != SHADER_DEFAULT_PROGRAM_ID) {
+        glDeleteProgram(s->program_id);
+    }
 
-    int vs_size;
-    vs = text_file_read(vertexFileName, &vs_size);
-    int fs_size;
-    fs = text_file_read(fragmentFileName, &fs_size);
+    free(s->vert_filename);
+    free(s->frag_filename);
 
-    const char * vv = vs;
-    const char * ff = fs;
+    _set_shader_defaults(s);
+}
 
-    glShaderSource(v, 1, &vv,NULL);
-    glShaderSource(f, 1, &ff,NULL);
+void _set_shader_defaults(Shader *s)
+{
+    assert(s != NULL);
 
-    free(vs);free(fs);
-
-    glCompileShader(v);
-    glCompileShader(f);
-
-    printShaderInfoLog(v);
-    printShaderInfoLog(f);
-
-    p = glCreateProgram();
-    glAttachShader(p,v);
-    glAttachShader(p,f);
-
-    glBindFragDataLocation(p, 0, "FracColor");
-    glLinkProgram(p);
-    printProgramInfoLog(p);
-
-    vertexLoc = glGetAttribLocation(p,"MCvertex");
-    normalLoc = glGetAttribLocation(p, "MCnormal");
-    tangentLoc = glGetAttribLocation(p, "MCtangent");
-    texLoc = glGetAttribLocation(p, "TexCoord0");
-
-    projMatrixLoc = glGetUniformLocation(p, "MVPMatrix");
-    viewMatrixLoc = glGetUniformLocation(p, "MVMatrix");
-    rotMatrixLoc = glGetUniformLocation(p, "RotMatrix");
-
-    return(p);
+    s->ref_count = SHADER_DEFAULT_REF_COUNT;
+    s->vertex_loc = SHADER_DEFAULT_VERTEX_LOC;
+    s->normal_loc = SHADER_DEFAULT_NORMAL_LOC;
+    s->tangent_loc = SHADER_DEFAULT_TANGENT_LOC;
+    s->tex_coords_loc = SHADER_DEFAULT_TEX_COORDS_LOC;
+    s->proj_matrix_loc = SHADER_DEFAULT_PROJ_MATRIX_LOC;
+    s->view_matrix_loc = SHADER_DEFAULT_VIEW_MATRIX_LOC;
+    s->rot_matrix_loc = SHADER_DEFAULT_ROTATION_MATRIX_LOC;
+    s->vert_filename = SHADER_DEFAULT_VERT_FILENAME;
+    s->frag_filename = SHADER_DEFAULT_FRAG_FILENAME;
+    s->program_id = SHADER_DEFAULT_PROGRAM_ID;
+    s->vert_program_id = SHADER_DEFAULT_VERT_PROGRAM_ID;
+    s->frag_program_id = SHADER_DEFAULT_FRAG_PROGRAM_ID;
 }

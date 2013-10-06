@@ -24,15 +24,46 @@
 #ifndef __SHADER_H__
 #define __SHADER_H__
 
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#else
+#define GL_GLEXT_PROTOTYPES 1
+#include <GL/gl.h>
+#include <GL/glext.h>
+#endif
+
 #include "config.h"
+#include "status.h"
 
-extern GLuint vertexLoc, normalLoc, tangentLoc, texLoc;
-extern GLuint projMatrixLoc, viewMatrixLoc;
-extern GLuint rotMatrixLoc;
+typedef struct Shader {
+    Status status;
+    unsigned int ref_count;
+    GLuint vertex_loc;
+    GLuint normal_loc;
+    GLuint tangent_loc;
+    GLuint tex_coords_loc;
+    GLuint proj_matrix_loc;
+    GLuint view_matrix_loc;
+    GLuint rot_matrix_loc;
+    char *vert_filename;
+    char *frag_filename;
+    GLuint program_id;
+    GLuint vert_program_id;
+    GLuint frag_program_id;
+} Shader;
 
-#define printOpenGLError() printOglError(__FILE__, __LINE__)
+#define print_opengl_error() print_gl_error(__FILE__, __LINE__)
 
-void set_uniform(int program, UniformConfig *config);
-GLuint setupShaders(char *vertexFileName, char *fragmentFileName);
+void init_shader(Shader *s);
+
+void load_shader(char *vert_file, char *frag_file, Shader *s);
+
+void bind_uniform(Shader *s, UniformConfig *config);
+
+void destroy_shader(Shader *s);
+
+void print_program_log(GLuint obj);
+
+void print_shader_log(GLuint obj);
 
 #endif// __SHADER_H__

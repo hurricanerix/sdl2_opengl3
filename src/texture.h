@@ -21,9 +21,42 @@
  * out of or in connection with the software or the use or other dealings in
  * the software.
  */
-#ifndef __BMP_H__
-#define __BMP_H__
+#ifndef __TEXTURE_H__
+#define __TEXTURE_H__
 
-void load_bmp(char *imagepath, int *width, int *height, unsigned char **data);
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#else
+#define GL_GLEXT_PROTOTYPES 1
+#include <GL/gl.h>
+#include <GL/glext.h>
+#endif
 
-#endif//__BMP_H__
+#include "status.h"
+
+typedef struct Texture {
+    Status status;
+    unsigned int ref_count;
+    GLuint texture_id;
+    char *filename;
+    unsigned int width;
+    unsigned int height;
+    unsigned char *data;
+} Texture;
+
+/// Init texture.
+Texture init_texture();
+
+/// Load the BMP data from filename and store it in t.
+void load_texture(char *filename, Texture *t);
+
+/// Bind the texture to opengl.
+void bind_texture(Texture *t);
+
+/// Unbind the texture to opengl.
+void unbind_texture(Texture *t);
+
+/// Free memory and rest variables.
+void destroy_texture(Texture *t);
+
+#endif//__TEXTURE_H__

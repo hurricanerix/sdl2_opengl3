@@ -21,12 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef __ERROR_H__
+#define __ERROR_H__
 
-#define TRUE (1)
-#define FALSE (0)
+#define MAX_ERROR_MSG_LEN (128)
+#define set_error_msg(s, msg) (strncpy(s.error_msg, msg, MAX_ERROR_MSG_LEN))
 
-#define MAX_FILENAME_LEN (255)
+typedef struct Status {
+    int is_error;
+    char error_msg[MAX_ERROR_MSG_LEN];
+} Status;
 
-#endif//__MIAN_H__
+void init_status(Status *s);
+void print_status(Status s);
+
+#endif//__ERROR_H__
