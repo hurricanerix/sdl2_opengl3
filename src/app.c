@@ -25,7 +25,7 @@
 
 
 SDL_Window* display_window;
-SDL_Renderer* display_renderer;
+SDL_GLContext glcontext;
 
 int app_running;
 Config *g_config;
@@ -40,7 +40,7 @@ mat3 rotation_matrix;
 
 void render_scene();
 
-//void setup_textures(Config *config);
+void setup_textures(Config *config);
 void cleanup(Config *config);
 void process_keys(unsigned char key);
 void set_uniforms();
@@ -50,11 +50,12 @@ void resize_display(int width, int height);
 void load_app(Config *config)
 {
     assert(config != NULL);
+
     app_running = TRUE;
     g_config = config;
 
     printf("Initializing SDL...");
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_EVERYTHING);
     printf(" Complete\n");
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -62,18 +63,21 @@ void load_app(Config *config)
     SDL_GL_SetAttribute(
         SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    printf("Creating window and renderer... ");
-    SDL_CreateWindowAndRenderer(
-        800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL, &display_window, &display_renderer);
-    printf(" Complete\n");
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    SDL_RendererInfo display_renderer_info;
-    SDL_GetRendererInfo(display_renderer, &display_renderer_info);
-    if ((display_renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0) {
-        // TODO: Handle this. We have no render surface and not accelerated.
+    display_window = SDL_CreateWindow("SDL2/OpenGL3 Demo",
+            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
+            SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN);
+    if (display_window == NULL) {
+        set_error_msg(&config->status, "Could not create window.\n");
+        return;
     }
 
-    print_renderer_info(&display_renderer_info);
+    // Create an OpenGL context associated with the window.
+    glcontext = SDL_GL_CreateContext(display_window);
+
+    printf("glcontext: %p\n", glcontext);
 
     SDL_GL_SetSwapInterval(1);
 
@@ -94,13 +98,25 @@ void load_app(Config *config)
     }
 
     //setup_textures(config);
+    Texture *colormap = NULL;
+
+    if (config->texture_count > 0) {
+        Texture tmp_colormap;
+        init_texture(&tmp_colormap);
+        load_texture(&tmp_colormap, config->textures[0].filename);
+        colormap = &tmp_colormap;
+    }
 
     g_object = init_object();
-    load_object(&g_object, config->app.object_filename, &g_shader, NULL, NULL);
+    load_object(&g_object, config->app.object_filename, &g_shader, colormap, NULL);
     if (g_object.status.is_error) {
         copy_status(&(config->status), &(g_object.status));
         return;
     }
+
+
+
+    bind_object(&g_object);
 }
 
 void run_app(Status *status)
@@ -170,12 +186,10 @@ void resize_display(int width, int height)
 
 void render_scene(Config *config)
 {
-    /*
     static vec3 rotation;
     rotation.x += 0.02;
     rotation.y += 0.05;
     rotation.z += 0.01;
-
 
     mvp_matrix = mult_mat4(proj_matrix, view_matrix);
     rotation_matrix = get_rotation_matrix(rotation);
@@ -184,14 +198,12 @@ void render_scene(Config *config)
     view_matrix = get_view_matrix(pos, lookAt);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glUseProgram(g_object.shader->program_id);
     set_uniforms(config);
-    bind_object(&g_object);
-
     render_object(&g_object);
-    */
 
-    //SDL_GL_SwapWindow(display_window);
+    SDL_GL_SwapWindow(display_window);
 }
 
 void process_keys(unsigned char key)
@@ -224,15 +236,15 @@ void set_uniforms(Config *config)
 
 void destroy_app()
 {
+    SDL_GL_DeleteContext(glcontext);
+    SDL_DestroyWindow(display_window);
     SDL_Quit();
 }
 
 
-/*void setup_textures(Config *config)
+void setup_textures(Config *config)
 {
-
     for(int i = 0; i < config->texture_count; i++) {
         //setup_texture(&(config->textures[i]));
     }
-
-}*/
+}

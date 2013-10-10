@@ -61,7 +61,16 @@ void load_shader(Shader *s, char *vert_filename, char *frag_filename)
     strncpy(s->frag_filename, (frag_filename), MAX_FILENAME_LEN);
 
     s->vert_program_id = glCreateShader(GL_VERTEX_SHADER);
+    if (s->vert_program_id == 0) {
+        set_error_msg(&s->status, "Could not create vert shader.");
+        return;
+    }
+
     s->frag_program_id = glCreateShader(GL_FRAGMENT_SHADER);
+    if (s->frag_program_id == 0) {
+        set_error_msg(&s->status, "Could not create frag shader.");
+        return;
+    }
 
     char *vs = NULL;
     int vs_size;
@@ -81,26 +90,79 @@ void load_shader(Shader *s, char *vert_filename, char *frag_filename)
         return;
     }
 
+    GLenum glerror;
+    GLint result;
     const char * vv = vs;
     const char * ff = fs;
 
     glShaderSource(s->vert_program_id, 1, &vv, NULL);
-    glShaderSource(s->frag_program_id, 1, &ff, NULL);
+    if ((glerror = glGetError()) != GL_NO_ERROR) {
+        set_error_msg(&s->status, "Could set vert shader source. (%d)",
+            glerror);
+        return;
+    }
 
-    free(vs); free(fs);
+    glShaderSource(s->frag_program_id, 1, &ff, NULL);
+    if ((glerror = glGetError()) != GL_NO_ERROR) {
+        set_error_msg(&s->status, "Could set frag shader source. (%d)",
+            glerror);
+        return;
+    }
 
     glCompileShader(s->vert_program_id);
+    glGetShaderiv(s->vert_program_id, GL_COMPILE_STATUS, &result);
+    if (result != GL_TRUE) {
+        set_error_msg(&s->status, "Could not compile vert shader.");
+        return;
+    }
+
     glCompileShader(s->frag_program_id);
+    glGetShaderiv(s->frag_program_id, GL_COMPILE_STATUS, &result);
+    if (result != GL_TRUE) {
+        set_error_msg(&s->status, "Could not compile frag shader.");
+        return;
+    }
+
+    free(vs); free(fs);
 
     print_shader_log(s->vert_program_id);
     print_shader_log(s->frag_program_id);
 
     s->program_id = glCreateProgram();
+    if (s->program_id == 0) {
+        set_error_msg(&s->status, "Could not create program.");
+        return;
+    }
+
     glAttachShader(s->program_id, s->vert_program_id);
+    if ((glerror = glGetError()) != GL_NO_ERROR) {
+        set_error_msg(&s->status, "Could not attach vert shader. (%d)",
+            glerror);
+        return;
+    }
+
     glAttachShader(s->program_id, s->frag_program_id);
+    if ((glerror = glGetError()) != GL_NO_ERROR) {
+        set_error_msg(&s->status, "Could not attach frag shader. (%d)",
+            glerror);
+        return;
+    }
 
     glBindFragDataLocation(s->program_id, 0, "FracColor");
+    if ((glerror = glGetError()) != GL_NO_ERROR) {
+        set_error_msg(&s->status, "Could not bind frag data location. (%d)",
+            glerror);
+        return;
+    }
+
     glLinkProgram(s->program_id);
+    glGetProgramiv(s->program_id, GL_LINK_STATUS, &result);
+    if ((glerror = glGetError()) != GL_NO_ERROR || result == GL_FALSE) {
+        set_error_msg(&s->status, "Could not bind frag data location. (%d,%d)",
+            glerror, result);
+        return;
+    }
+
     print_program_log(s->program_id);
 
     s->vertex_loc = glGetAttribLocation(s->program_id, "MCvertex");
@@ -115,6 +177,7 @@ void load_shader(Shader *s, char *vert_filename, char *frag_filename)
 
 void bind_uniform(Shader *s, UniformConfig *config)
 {
+    assert(s != NULL);
     assert(config != NULL);
 
     GLuint loc = glGetUniformLocation(s->program_id, config->name);
@@ -174,7 +237,6 @@ void print_shader_log(GLuint obj)
         printf("%s\n",infoLog);
         free(infoLog);
     }
-
 }
 
 void print_program_log(GLuint obj)
@@ -192,7 +254,6 @@ void print_program_log(GLuint obj)
         printf("%s\n",infoLog);
         free(infoLog);
     }
-
 }
 
 void destroy_shader(Shader *s)
@@ -257,5 +318,5 @@ void _print_shader(FILE *fp, Shader *s)
     fprintf(fp, "program_id:\t%d\n", s->program_id);
     fprintf(fp, "vert_program_id:\t%d\n", s->vert_program_id);
     fprintf(fp, "frag_program_id:\t%d\n", s->frag_program_id);
-    /* Status status;*/
+    // Status status;
 }
