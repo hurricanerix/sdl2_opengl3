@@ -35,17 +35,14 @@
 void _set_texture_defaults(Texture *t);
 
 
-Texture init_texture()
+void init_texture(Texture *t)
 {
-    Texture t;
-    init_status(&t.status);
+    init_status(&t->status);
 
-    _set_texture_defaults(&t);
-
-    return t;
+    _set_texture_defaults(t);
 }
 
-void load_texture(char *filename, Texture *t)
+void load_texture(Texture *t, char *filename)
 {
     assert(t != NULL);
     assert(filename != NULL);

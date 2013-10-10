@@ -36,6 +36,8 @@
 #define OBJECT_DEFAULT_COLORMAP (NULL)
 #define OBJECT_DEFAULT_NORMALMAP (NULL)
 
+GLuint vao[3];
+
 // list of property information for a vertex
 PlyProperty vert_props[] = {
   {"x", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,x), 0, 0, 0, 0},
@@ -216,43 +218,62 @@ void bind_object(Object *o)
 
     glEnable(GL_CULL_FACE);
 
-    glGenBuffers(OBJECT_GL_BUFFER_COUNT, o->gl_buffers);
-    // bind buffer for vertex and copy data into buffer
+    glGenVertexArrays(1, vao);
+    glBindVertexArray(vao[0]);
 
+    // bind buffer for vertex and copy data into buffer
+    glGenBuffers(1, &(o->gl_buffers[0]));
     glBindBuffer(GL_ARRAY_BUFFER, o->gl_buffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * o->vertex_count * 3, o->vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * o->vertex_count, o->vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(o->shader->vertex_loc);
     glVertexAttribPointer(o->shader->vertex_loc, 3, GL_FLOAT, 0, 0, 0);
 
     // bind buffer for normal and copy data into buffer
+    glGenBuffers(1, &(o->gl_buffers[1]));
     glBindBuffer(GL_ARRAY_BUFFER, o->gl_buffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * o->vertex_count * 3, o->normals, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * o->vertex_count, o->normals, GL_STATIC_DRAW);
     glEnableVertexAttribArray(o->shader->normal_loc);
     glVertexAttribPointer(o->shader->normal_loc, 3, GL_FLOAT, 0, 0, 0);
 
     // bind buffer for tanget and copy data into buffer
+    glGenBuffers(1, &(o->gl_buffers[2]));
     glBindBuffer(GL_ARRAY_BUFFER, o->gl_buffers[2]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * o->vertex_count * 3, o->tangents, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * o->vertex_count, o->tangents, GL_STATIC_DRAW);
     glEnableVertexAttribArray(o->shader->tangent_loc);
     glVertexAttribPointer(o->shader->tangent_loc, 3, GL_FLOAT, 0, 0, 0);
 
     // bind buffer for tex coords and copy data into buffer
+    glGenBuffers(1, &(o->gl_buffers[3]));
     glBindBuffer(GL_ARRAY_BUFFER, o->gl_buffers[3]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * o->vertex_count * 2, o->tex_coords, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * o->vertex_count, o->tex_coords, GL_STATIC_DRAW);
     glEnableVertexAttribArray(o->shader->tex_coords_loc);
     glVertexAttribPointer(o->shader->tex_coords_loc, 2, GL_FLOAT, 0, 0, 0);
 
+    glGenBuffers(1, &(o->gl_buffers[4]));
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->gl_buffers[4]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * o->triangle_count, o->triangles, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * o->triangle_count * 3, o->triangles, GL_STATIC_DRAW);
+
+    if (o->colormap != NULL) {
+        GLuint textureID;
+        glGenTextures(1, &textureID);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, o->colormap->width, o->colormap->height, 0, GL_RGB,
+            GL_UNSIGNED_BYTE, o->colormap->data);
+    }
 }
 
 void render_object(Object *o)
 {
     assert(o != NULL);
 
-    glUseProgram(o->shader->program_id);
-
-    glDrawElements(GL_TRIANGLES, o->triangle_count * 3, GL_UNSIGNED_INT, o->triangles);
+    glDrawElements(GL_TRIANGLES, o->triangle_count * 3, GL_UNSIGNED_INT, NULL);
 }
 
 void unbind_object(Object *o)

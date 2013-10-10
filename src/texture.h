@@ -45,10 +45,10 @@ typedef struct Texture {
 } Texture;
 
 /// Init texture.
-Texture init_texture();
+void init_texture(Texture *t);
 
 /// Load the BMP data from filename and store it in t.
-void load_texture(char *filename, Texture *t);
+void load_texture(Texture *t, char *filename);
 
 /// Bind the texture to opengl.
 void bind_texture(Texture *t);
