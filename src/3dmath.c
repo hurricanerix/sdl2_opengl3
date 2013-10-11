@@ -301,6 +301,10 @@ vec3 get_surface_local_tangent(
         t.z = delta * ((distBA.z * tdistCA.y) + (distCA.z * -tdistBA.y));
     }
 
+    t.x = 1.0;
+    t.y = 1.0;
+    t.z = 1.0;
+
     // Averages the new tagent vector with the oldest buffered.
     //tangentBuffer[i1] = vec3Add(tangent, tangentBuffer[i1]);
     //tangentBuffer[i2] = vec3Add(tangent, tangentBuffer[i2]);

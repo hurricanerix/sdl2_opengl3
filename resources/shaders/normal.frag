@@ -23,7 +23,11 @@
  */
 #version 150
 
-in float LightIntensity;
+uniform vec4 SurfaceColor;
+uniform float SpecularFactor;
+
+in vec3 LightDir;
+in vec3 EyeDir;
 in vec2 TexCoord;
 
 uniform sampler2D ColorMap;
@@ -32,6 +36,15 @@ out vec4 FracColor;
 
 void main()
 {
-    vec3 color = texture(ColorMap, TexCoord).rgb;
-    FracColor = vec4(color * LightIntensity, 1.0);
+    vec3 litColor;
+    vec3 normDelta = texture(ColorMap, TexCoord).rgb;
+    litColor = SurfaceColor.rgb * max(dot(normDelta, LightDir), 0.0);
+    vec3 reflectDir = reflect(LightDir, normDelta);
+
+    float spec = max(dot(EyeDir, reflectDir), 0.0);
+    spec = pow(spec, 6.0);
+    spec *= SpecularFactor;
+    litColor = min(litColor + spec, vec3(1.0));
+
+    FracColor = vec4(litColor, SurfaceColor.a);
 }

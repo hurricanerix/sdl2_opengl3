@@ -124,7 +124,7 @@ void load_object(Object *o, char *filename, Shader *shader, Texture *colormap,
             o->vertex_count = num_elems;
             o->vertices = malloc(sizeof(vec3) * o->vertex_count);
             o->normals = malloc(sizeof(vec3) * o->vertex_count);
-            //o->tangents = malloc(sizeof(vec3) * o->vertex_count);
+            o->tangents = malloc(sizeof(vec3) * o->vertex_count);
             o->tex_coords = malloc(sizeof(vec2) * o->vertex_count);
 
             // set up for getting vertex elements 
@@ -178,28 +178,29 @@ void load_object(Object *o, char *filename, Shader *shader, Texture *colormap,
                 t->y = triangle.verts[1];
                 t->z = triangle.verts[2];
 
-                /*
-                vec3 *p1, *p2, *p3, *ptmp;
+                vec3 *p1, *p2, *p3; //, *ptmp;
                 p1 = &(o->vertices[t->x]);
                 p2 = &(o->vertices[t->y]);
                 p3 = &(o->vertices[t->z]);
 
-                vec2 *t1, *t2, *t3, *ttmp;
+                vec2 *t1, *t2, *t3; //, *ttmp;
                 t1 = &(o->tex_coords[t->x]);
                 t2 = &(o->tex_coords[t->y]);
                 t3 = &(o->tex_coords[t->z]);
 
-                for (int k = 0; k < 3; k++) {
-                    vec3 tangent = get_surface_local_tangent(*p1, *t1, *p2, *t2, *p3, *t3);
-                    vec3 *t = &(o->vertices[j]);
-                    t->x = tangent.x;
-                    t->y = tangent.y;
-                    t->z = tangent.z;
-
-                    ptmp = p1; p1 = p2; p2 = p3; p3 = ptmp;
-                    ttmp = t1; t1 = t2; t2 = t3; t3 = ttmp;
-                }
-            */
+                vec3 tangent = get_surface_local_tangent(*p1, *t1, *p2, *t2, *p3, *t3);
+                vec3 *tanx = &o->tangents[o->triangles[j].x];
+                tanx->x = tangent.x;
+                tanx->y = tangent.y;
+                tanx->z = tangent.z;
+                vec3 *tany = &o->tangents[o->triangles[j].y];
+                tany->x = tangent.x;
+                tany->y = tangent.y;
+                tany->z = tangent.z;
+                vec3 *tanz = &o->tangents[o->triangles[j].z];
+                tanz->x = tangent.x;
+                tanz->y = tangent.y;
+                tanz->z = tangent.z;
             }
         }
     }
