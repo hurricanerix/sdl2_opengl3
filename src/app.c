@@ -28,11 +28,13 @@ SDL_Window* display_window;
 SDL_GLContext glcontext;
 
 int app_running;
+
+vec3 rotation;
+
 Config *g_config;
 Shader g_shader;
 Object g_object;
 
-//GLuint p,v,f;
 mat4 proj_matrix;
 mat4 view_matrix;
 mat4 mvp_matrix;
@@ -114,9 +116,11 @@ void load_app(Config *config)
         return;
     }
 
-
-
     bind_object(&g_object);
+
+    rotation.x = 0.0;
+    rotation.y = 0.0;
+    rotation.z = 0.0;
 }
 
 void run_app(Status *status)
@@ -131,7 +135,7 @@ void run_app(Status *status)
 
         switch (event.type)
         {
-        case SDL_KEYUP:
+        case SDL_KEYDOWN:
             process_keys(event.key.keysym.sym);
             break;
         case SDL_QUIT:
@@ -186,11 +190,6 @@ void resize_display(int width, int height)
 
 void render_scene(Config *config)
 {
-    static vec3 rotation;
-    rotation.x += 0.02;
-    rotation.y += 0.05;
-    rotation.z += 0.01;
-
     mvp_matrix = mult_mat4(proj_matrix, view_matrix);
     rotation_matrix = get_rotation_matrix(rotation);
     vec3 pos = {{.x=5}, {.y=5}, {.z=0}};
@@ -209,6 +208,18 @@ void render_scene(Config *config)
 void process_keys(unsigned char key)
 {
     switch (key) {
+    case SDL_SCANCODE_LEFT:
+        rotation.x += 0.01;
+        break;
+    case SDL_SCANCODE_RIGHT:
+        rotation.x -= 0.01;
+        break;
+    case SDL_SCANCODE_UP:
+        rotation.y += 0.01;
+        break;
+    case SDL_SCANCODE_DOWN:
+        rotation.y -= 0.01;
+        break;
     case SDLK_ESCAPE:
         app_running = FALSE;
         return;
