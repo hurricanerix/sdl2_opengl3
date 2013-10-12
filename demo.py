@@ -1,60 +1,43 @@
-import sys
-import ctypes
-from sdl2 import *
-import OpenGL
-OpenGL.ERROR_LOGGING = False
-from OpenGL.GL import *
+# The MIT License (MIT)
+#
+# Copyright (c) 2013 Richard Hawkins
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+import argparse
+
+from demo.app import Application
+from demo.config import ConfigFactory
 
 
 def main():
-    SDL_Init(SDL_INIT_VIDEO)
+    parser = argparse.ArgumentParser(description='PySDL2/OpenGL3 Dmeo.')
+    parser.add_argument(
+        'configfile', metavar='CONFIG', type=str,
+        help='path to the config file.')
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2)
-    SDL_GL_SetAttribute(
-        SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+    args = parser.parse_args()
+    config = ConfigFactory.get_config(args)
 
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24)
+    app = Application(config)
 
-    window = SDL_CreateWindow(b"Hello World",
-                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN)
+    app.run()
 
-    windowsurface = SDL_GetWindowSurface(window)
-
-    glcontext = SDL_GL_CreateContext(window)
-
-    print "GL_VENDOR: {}".format(glGetString(GL_VENDOR))
-    print "GL_RENDERER: {}".format(glGetString(GL_RENDERER))
-    print "GL_VERSION: {}".format(glGetString(GL_VERSION))
-    print "GL_SHADING_LANGUAGE_VERSION: {}".format(glGetString(
-        GL_SHADING_LANGUAGE_VERSION))
-
-    glEnable(GL_DEPTH_TEST)
-
-    glClearColor(0.2, 0.2, 0.2, 1.0)
-
-    #image = SDL_LoadBMP(b"exampleimage.bmp")
-    #SDL_BlitSurface(image, None, windowsurface, None)
-
-    #SDL_UpdateWindowSurface(window)
-    #SDL_FreeSurface(image)
-
-    running = True
-    event = SDL_Event()
-    while running:
-        while SDL_PollEvent(ctypes.byref(event)) != 0:
-            if event.type == SDL_QUIT:
-                running = False
-                break
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        SDL_GL_SwapWindow(window)
-
-    SDL_DestroyWindow(window)
-    SDL_Quit()
-    return 0
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
