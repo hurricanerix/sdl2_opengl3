@@ -34,16 +34,17 @@ ifeq ($(OS),Windows_NT)
 else
     CC=gcc -std=gnu99
     UNAME_S := $(shell uname -s)
-    CFLAGS_ALL=-g -Wall -Werror -O3 -c `sdl2-config --cflags`
-    LDFLAGS_ALL=-L/usr/local/lib -lm `sdl2-config --libs`
+    CFLAGS_ALL=-g -Wall -Werror -O3
+    LDFLAGS_ALL=-L/usr/local/lib
 
     ifeq ($(UNAME_S),Darwin)
         CFLAGS=$(CFLAGS_ALL) -I/usr/include/GL/gl.h -I/Library/Frameworks/SDL2.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE -D_DEBUG
-        LDFLAGS=$(LDFLAGS_ALL) -Wl,-framework,Cocoa -framework GLUT -framework OpenGL
+        LDFLAGS=$(LDFLAGS_ALL) -Wl,-framework,Cocoa -framework SDL2 -framework GLUT -framework OpenGL
     endif
     ifeq ($(UNAME_S),Linux)
-        CFLAGS=$(CFLAGS_ALL) -I/usr/include
-        LDFLAGS=$(LDFLAGS_ALL) -lGL
+        CFLAGS=$(CFLAGS_ALL) -I/usr/include -c `sdl2-config --cflags`
+
+        LDFLAGS=$(LDFLAGS_ALL) -lGL -lm `sdl2-config --libs`
     endif
 endif
 

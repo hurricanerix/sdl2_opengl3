@@ -8,6 +8,10 @@ addition it should also be useful for experimenting with shader development.
 Installation
 ------------
 
+Install XCode & CLI tools.
+
+Install Development Libraries for SDL2: http://www.libsdl.org/download-2.0.php
+
 OSX
 ---
 
